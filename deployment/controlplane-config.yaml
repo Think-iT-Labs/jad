@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: controlplane-config
+  namespace: edc-v
+data:
+  # base config
+  edc.runtime.id: "edc-v-controlplane"
+  edc.hostname: "controlplane.edc-v.svc.cluster.local"
+  edc.iam.sts.oauth.client.secret.alias: "client-secret-alias"
+  edc.iam.sts.oauth.client.id: "client-id"
+  edc.iam.sts.oauth.token.url: "https://example.com/oauth/token"
+  edc.vault.hashicorp.url: "http://vault.edc-v.svc.cluster.local:8200"
+  edc.vault.hashicorp.token: "root"
+  edc.iam.issuer.id: "did:web:connector"
+  edc.participant.id: "did:web:connector"
+  edc.iam.did.web.use.https: "false"
+  edc.iam.credential.revocation.mimetype: "application/json"
+
+  # web config
+  web.protocol.port: "8082"
+  web.protocol.path: "/api/dsp"
+
+  # dataplane config
+  edc.datasource.default.url: "jdbc:postgresql://postgres.edc-v.svc.cluster.local:5432/controlplane"
+  edc.datasource.default.user: "cp"
+  edc.datasource.default.password: "cp"
+  edc.sql.schema.autocreate: "true"
+
+  JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044"
