@@ -30,7 +30,7 @@ public record DataProcessorAttestationSource(Map<String, Object> config) impleme
         return Result.success(Map.of(
                 "contractVersion", contractVersion,
                 "level", LEVEL,
-                "id", context.participantId()
+                "id", context.participantContextId()
         ));
     }
 }

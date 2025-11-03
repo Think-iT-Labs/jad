@@ -28,6 +28,6 @@ public class MembershipAttestationSource implements AttestationSource {
                 "membership", Map.of("since", Instant.now().toString()),
                 "membershipType", "full-member",
                 "membershipStartDate", Instant.now().toString(),
-                "id", attestationContext.participantId()));
+                "id", attestationContext.participantContextId()));
     }
 }
