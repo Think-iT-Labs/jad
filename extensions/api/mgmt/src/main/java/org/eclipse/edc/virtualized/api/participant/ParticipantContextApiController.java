@@ -32,6 +32,7 @@ public class ParticipantContextApiController implements ParticipantContextApi {
     private static final String CLIENT_ID = "edc.iam.sts.oauth.client.id";
     private static final String CLIENT_SECRET_ALIAS = "edc.iam.sts.oauth.client.secret.alias";
     private static final String ISSUER_ID = "edc.iam.issuer.id";
+    private static final String PARTICIPANT_ID = "edc.participant.id";
 
     public ParticipantContextApiController(ParticipantContextService participantContextStore, ParticipantContextConfigService configService, Vault vault) {
         this.participantContextStore = participantContextStore;
@@ -58,7 +59,8 @@ public class ParticipantContextApiController implements ParticipantContextApi {
         var config = Map.of(TOKEN_URL, manifest.getTokenUrl(),
                 CLIENT_ID, manifest.getClientId(),
                 CLIENT_SECRET_ALIAS, manifest.getClientSecretAlias(),
-                ISSUER_ID, manifest.getParticipantId());
+                ISSUER_ID, manifest.getParticipantId(),
+                PARTICIPANT_ID, manifest.getParticipantId());
 
         var configResult = configService.save(participantContextId, ConfigFactory.fromMap(config));
         if(configResult.failed()){

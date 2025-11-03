@@ -20,11 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * Manifest (=recipe) for creating the {@link ParticipantContext}.

@@ -1,8 +1,9 @@
-package org.eclipse.edc.virtualized.api.participant;
+package org.eclipse.edc.virtualized.api;
 
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -10,13 +11,15 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.virtualized.api.management.WrapperApiController;
+import org.eclipse.edc.virtualized.api.participant.ParticipantContextApiController;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 
-public class ParticipantContextApiExtension implements ServiceExtension {
+public class ApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
     @Inject
@@ -30,6 +33,12 @@ public class ParticipantContextApiExtension implements ServiceExtension {
     private ParticipantContextConfigService configService;
     @Inject
     private Vault vault;
+    @Inject
+    private CatalogService catalogService;
+    @Inject
+    private DidResolverRegistry didResolverRegistry;
+    @Inject
+    private ParticipantContextService participantContextService;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -38,6 +47,7 @@ public class ParticipantContextApiExtension implements ServiceExtension {
 
 
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiController(service, configService, vault));
+        webService.registerResource(ApiContext.MANAGEMENT, new WrapperApiController(catalogService, didResolverRegistry, participantContextService));
 
     }
 

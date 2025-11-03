@@ -25,6 +25,8 @@ edc-dcp-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 edc-store-participantcontext-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
+edc-lib-jws2020 = { module = "org.eclipse.edc:jws2020-lib", version.ref = "edc" }
+edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 
 # EDC-V dependencies
 edcv-core-connector = { module = "org.eclipse.edc.virtualized:v-connector-core", version.ref = "edc" }
@@ -35,7 +37,14 @@ edcv-protocols-dsp = { module = "org.eclipse.edc.virtualized:dsp", version.ref =
 
 # EDC spi dependencies
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
+edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
+edc-spi-controlplane = {module = "org.eclipse.edc:control-plane-spi", version.ref = "edc"}
+edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", version.ref = "edc" }
+edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
+edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
+edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+
 
 # identityhub SPI modules
 edc-ih-spi-credentials = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }

@@ -16,15 +16,10 @@ plugins {
     id("application")
     alias(libs.plugins.shadow)
     alias(libs.plugins.docker)
-    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
-    implementation(libs.edc.did.core)
-    implementation(libs.edc.spi.participantcontext )
-    implementation(libs.edcv.core.connector)
-    implementation(libs.edc.spi.web)
-
+    runtimeOnly(libs.edcv.core.connector)
     runtimeOnly(libs.edcv.core.negotiationmanager)
     runtimeOnly(libs.edcv.core.transfermanager)
     runtimeOnly(libs.edcv.banner)
@@ -48,6 +43,9 @@ dependencies {
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.store.participantcontext.sql)
     runtimeOnly(libs.edc.store.participantcontext.config.sql)
+
+    runtimeOnly(project(":extensions:api:mgmt"))
+    runtimeOnly(project(":extensions:dcp-impl"))
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
