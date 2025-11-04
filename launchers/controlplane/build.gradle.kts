@@ -24,6 +24,12 @@ dependencies {
     runtimeOnly(libs.edcv.core.transfermanager)
     runtimeOnly(libs.edcv.banner)
     runtimeOnly(libs.edcv.protocols.dsp)
+    runtimeOnly(libs.edcv.cdc.postgres)
+    runtimeOnly(libs.edcv.nats.publisher.cn)
+    runtimeOnly(libs.edcv.nats.publisher.tp)
+    runtimeOnly(libs.edcv.nats.subscriber.tp)
+    runtimeOnly(libs.edcv.nats.subscriber.cn)
+
     runtimeOnly(libs.edc.core.connector)
     runtimeOnly(libs.edc.core.runtime)
     runtimeOnly(libs.edc.core.token)
@@ -43,6 +49,8 @@ dependencies {
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.store.participantcontext.sql)
     runtimeOnly(libs.edc.store.participantcontext.config.sql)
+
+    runtimeOnly(libs.bouncyCastle.bcprovJdk18on)
 
     runtimeOnly(project(":extensions:api:mgmt"))
     runtimeOnly(project(":extensions:dcp-impl"))

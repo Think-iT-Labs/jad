@@ -4,6 +4,7 @@ format.version = "1.1"
 [versions]
 edc = "0.15.0-SNAPSHOT"
 edc-build = "1.1.2"
+bouncyCastle-jdk18on = "1.82"
 
 [libraries]
 # upstream EDC dependencies
@@ -34,6 +35,11 @@ edcv-core-negotiationmanager = { module = "org.eclipse.edc.virtualized:negotiati
 edcv-core-transfermanager = { module = "org.eclipse.edc.virtualized:transfer-process-manager", version.ref = "edc" }
 edcv-banner = { module = "org.eclipse.edc.virtualized:banner-extension", version.ref = "edc" }
 edcv-protocols-dsp = { module = "org.eclipse.edc.virtualized:dsp", version.ref = "edc" }
+edcv-cdc-postgres = { module = "org.eclipse.edc.virtualized:postgres-cdc", version.ref = "edc" }
+edcv-nats-subscriber-tp = {module = "org.eclipse.edc.virtualized:transfer-process-subscriber-nats", version.ref = "edc"}
+edcv-nats-subscriber-cn = {module = "org.eclipse.edc.virtualized:negotiation-subscriber-nats", version.ref = "edc"}
+edcv-nats-publisher-tp = {module = "org.eclipse.edc.virtualized:transfer-process-cdc-publisher-nats", version.ref = "edc"}
+edcv-nats-publisher-cn = {module = "org.eclipse.edc.virtualized:negotiation-cdc-publisher-nats", version.ref = "edc"}
 
 # EDC spi dependencies
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -46,7 +52,7 @@ edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", versio
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
-edc-spi-transaction= { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
+edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 
 
 # identityhub SPI modules
@@ -70,8 +76,12 @@ edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bo
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-bom", version.ref = "edc" }
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
 
-[bundles]
+# Third party deps
 
+bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
+bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
+
+[bundles]
 dcp = [
     "edc-dcp",
     "edc-did-core",

@@ -13,6 +13,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.virtualized.service.DataRequestService;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -25,11 +26,13 @@ public class WrapperApiController {
     private final CatalogService service;
     private final DidResolverRegistry didResolverRegistry;
     private final ParticipantContextService participantContextService;
+    private final DataRequestService dataRequestService;
 
-    public WrapperApiController(CatalogService service, DidResolverRegistry didResolverRegistry, ParticipantContextService participantContextService) {
+    public WrapperApiController(CatalogService service, DidResolverRegistry didResolverRegistry, ParticipantContextService participantContextService, DataRequestService dataRequestService) {
         this.service = service;
         this.didResolverRegistry = didResolverRegistry;
         this.participantContextService = participantContextService;
+        this.dataRequestService = dataRequestService;
     }
 
 
@@ -55,10 +58,9 @@ public class WrapperApiController {
         var protocolEndpoint = doc.getService().stream().filter(s -> s.getType().equals("ProtocolEndpoint")).findFirst();
         if (protocolEndpoint.isEmpty()) {
             response.resume(Response.status(400).entity("No ProtocolEndpoint service found in DID Document for '%s'".formatted(counterPartyDid)).build());
+            return;
         }
         var counterPartyAddress = protocolEndpoint.get().getServiceEndpoint();
-
-
         var catalog = service.requestCatalog(participantContext.getContent(), counterPartyDid, counterPartyAddress, catalogRequest.getProtocol(), catalogRequest.getQuery());
 
         catalog.whenComplete((result, throwable) -> {
@@ -71,7 +73,33 @@ public class WrapperApiController {
 
     }
 
-    private byte[] toResponse(StatusResult<byte[]> result, Throwable throwable) throws Throwable {
+    @POST
+    @Path("/data")
+    public void getData(@PathParam("participantContextId") String participantContextId, DataRequest dataRequest, @Suspended AsyncResponse response) {
+        var participantContext = participantContextService.getParticipantContext(participantContextId);
+        if (participantContext.failed()) {
+            response.resume(Response.status(404).entity("Participant context '%s' not found".formatted(participantContextId)).build());
+        }
+        dataRequestService.getData(participantContext.getContent(), dataRequest)
+                .whenComplete((result, throwable) -> {
+                    try {
+                        if (throwable != null) {
+                            response.resume(throwable);
+
+                        } else if (result.succeeded()) {
+                            response.resume(result.getContent());
+                        } else {
+                            response.resume(new BadGatewayException(result.getFailureDetail()));
+                        }
+                    } catch (Throwable mapped) {
+                        response.resume(mapped);
+                    }
+                });
+
+
+    }
+
+    private <T> T toResponse(StatusResult<T> result, Throwable throwable) throws Throwable {
         if (throwable == null) {
             if (result.succeeded()) {
                 return result.getContent();

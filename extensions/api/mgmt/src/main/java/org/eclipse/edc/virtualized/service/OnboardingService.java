@@ -104,18 +104,7 @@ public class OnboardingService {
         var policy = PolicyDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .participantContextId(participantContextId)
-                .policy(Policy.Builder.newInstance()
-                        .permission(Permission.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("use")
-                                        .build())
-                                .constraint(AtomicConstraint.Builder.newInstance()
-                                        .leftExpression(new LiteralExpression("MembershipCredential"))
-                                        .operator(Operator.EQ)
-                                        .rightExpression(new LiteralExpression("active"))
-                                        .build())
-                                .build())
-                        .build())
+                .policy(Data.MEMBERSHIP_POLICY)
                 .build();
 
         return policyService.create(policy);
