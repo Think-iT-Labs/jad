@@ -1,0 +1,1290 @@
+{
+	"info": {
+		"_postman_id": "ff41b042-89e0-43f6-b94d-68d4c0b20a9d",
+		"name": "EDC-V Onboarding",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "647585",
+		"_collection_link": "https://galactic-star-228409.postman.co/workspace/EDC-V~63c4389d-b024-4df9-a3e9-bf93de272251/collection/647585-ff41b042-89e0-43f6-b94d-68d4c0b20a9d?action=share&source=collection_link&creator=647585"
+	},
+	"item": [
+		{
+			"name": "Setup Issuer",
+			"item": [
+				{
+					"name": "Create Tenant in IssuerService",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse JSON response and store clientId and clientSecret as collection variables",
+									"let jsonData;",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    try {",
+									"        jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        throw new Error(\"Response body is not valid JSON\");",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response contains apiKey, clientId and clientSecret\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"clientId\");",
+									"    pm.expect(jsonData).to.have.property(\"clientSecret\");",
+									"    pm.expect(jsonData).to.have.property(\"apiKey\");",
+									"});",
+									"",
+									"if (jsonData && jsonData.clientId && jsonData.clientSecret) {",
+									"    pm.collectionVariables.set(\"issuer_apiKey\", jsonData.apiKey);",
+									"    pm.collectionVariables.set(\"issuer_clientId\", jsonData.clientId);",
+									"    pm.collectionVariables.set(\"issuer_clientSecret\", jsonData.clientSecret);",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"roles\": [\n        \"admin\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuerservice.edc-v.svc.cluster.local:10012/api/issuance/v1alpha/participants/aXNzdWVy\",\n            \"id\": \"issuer-service-1\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"issuer\",\n    \"did\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"key\": {\n        \"keyId\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"privateKeyAlias\": \"key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EdDSA\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/issuer/cs/api/identity/v1alpha/participants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"issuer",
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create AttestationDefinition",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"attestationType\": \"membership\",\n    \"configuration\": {\n    },\n    \"id\": \"membership-attestation-def-1\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/issuer/admin/api/admin/v1alpha/participants/aXNzdWVy/attestations",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"issuer",
+								"admin",
+								"api",
+								"admin",
+								"v1alpha",
+								"participants",
+								"aXNzdWVy",
+								"attestations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create CredentialDefinition",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"attestations\": [\n        \"membership-attestation-def-1\"\n    ],\n    \"credentialType\": \"MembershipCredential\",\n    \"id\": \"membership-credential-def\",\n    \"jsonSchema\": \"{}\",\n    \"jsonSchemaUrl\": \"https://example.com/schema/membership-credential.json\",\n    \"mappings\": [\n        {\n              \"input\": \"membership\",\n              \"output\": \"credentialSubject.membership\",\n              \"required\": true\n        },\n        {\n            \"input\": \"membershipType\",\n            \"output\": \"credentialSubject.membershipType\",\n            \"required\": \"true\"\n        },\n        {\n            \"input\": \"membershipStartDate\",\n            \"output\": \"credentialSubject.membershipStartDate\",\n            \"required\": true\n        }\n    ],\n    \"rules\": [],\n    \"format\": \"VC1_0_JWT\",\n    \"validity\": \"604800\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/issuer/admin/api/admin/v1alpha/participants/aXNzdWVy/credentialdefinitions",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"issuer",
+								"admin",
+								"api",
+								"admin",
+								"v1alpha",
+								"participants",
+								"aXNzdWVy",
+								"credentialdefinitions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Create Consumer Tenant",
+			"item": [
+				{
+					"name": "Create Consumer Holder in IssuerService",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"holderId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"name\": \"consumer tenant\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/issuer/admin/api/admin/v1alpha/participants/aXNzdWVy/holders",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"issuer",
+								"admin",
+								"api",
+								"admin",
+								"v1alpha",
+								"participants",
+								"aXNzdWVy",
+								"holders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Consumer Tenant in IdentityHub",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse JSON response and store clientId and clientSecret as collection variables",
+									"let jsonData;",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    try {",
+									"        jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        throw new Error(\"Response body is not valid JSON\");",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response contains apiKey, clientId and clientSecret\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"clientId\");",
+									"    pm.expect(jsonData).to.have.property(\"clientSecret\");",
+									"    pm.expect(jsonData).to.have.property(\"apiKey\");",
+									"});",
+									"",
+									"if (jsonData && jsonData.clientId && jsonData.clientSecret) {",
+									"    pm.collectionVariables.set(\"tenant_clientId\", jsonData.clientId);",
+									"    pm.collectionVariables.set(\"tenant_clientSecret\", jsonData.clientSecret);",
+									"    pm.collectionVariables.set(\"tenant_apiKey\", jsonData.apiKey);",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/Y29uc3VtZXI=\",\n            \"id\": \"consumer-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane:8082/api/dsp/consumer/2025-1\",\n            \"id\": \"consumer-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"consumer\",\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"key\": {\n        \"keyId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer#key-1\",\n        \"privateKeyAlias\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request Credentials",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"issuerDid\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"holderPid\": \"credential-request-5\",\n    \"credentials\": [{\n        \"format\": \"VC1_0_JWT\",\n        \"type\": \"MembershipCredential\",\n        \"id\": \"membership-credential-def\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/Y29uc3VtZXI=/credentials/request",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants",
+								"Y29uc3VtZXI=",
+								"credentials",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tenant in Control Plane",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantContextId\": \"consumer\",\n    \"participantId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cp/api/mgmt/v1alpha/participants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cp",
+								"api",
+								"mgmt",
+								"v1alpha",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Create Provider Tenant",
+			"item": [
+				{
+					"name": "Create Provider Holder in IssuerService",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"holderId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"name\": \"provider tenant\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/issuer/admin/api/admin/v1alpha/participants/aXNzdWVy/holders",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"issuer",
+								"admin",
+								"api",
+								"admin",
+								"v1alpha",
+								"participants",
+								"aXNzdWVy",
+								"holders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Provider Tenant in IdentityHub",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse JSON response and store clientId and clientSecret as collection variables",
+									"let jsonData;",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    try {",
+									"        jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        throw new Error(\"Response body is not valid JSON\");",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response contains apiKey, clientId and clientSecret\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"clientId\");",
+									"    pm.expect(jsonData).to.have.property(\"clientSecret\");",
+									"    pm.expect(jsonData).to.have.property(\"apiKey\");",
+									"});",
+									"",
+									"if (jsonData && jsonData.clientId && jsonData.clientSecret) {",
+									"    pm.collectionVariables.set(\"tenant_clientId\", jsonData.clientId);",
+									"    pm.collectionVariables.set(\"tenant_clientSecret\", jsonData.clientSecret);",
+									"    pm.collectionVariables.set(\"tenant_apiKey\", jsonData.apiKey);",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/cHJvdmlkZXI=\",\n            \"id\": \"provider-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane:8082/api/dsp/provider/2025-1\",\n            \"id\": \"provider-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantId\": \"provider\",\n    \"participantContextId\": \"provider\",\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"key\": {\n        \"keyId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"privateKeyAlias\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request Credentials",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-api-key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"issuerDid\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"holderPid\": \"credential-request-1\",\n    \"credentials\": [{\n        \"format\": \"VC1_0_JWT\",\n        \"type\": \"MembershipCredential\",\n        \"id\": \"membership-credential-def\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/cHJvdmlkZXI=/credentials/request",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants",
+								"cHJvdmlkZXI=",
+								"credentials",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Provider in Control Plane",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantContextId\": \"provider\",\n    \"participantId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cp/api/mgmt/v1alpha/participants",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cp",
+								"api",
+								"mgmt",
+								"v1alpha",
+								"participants"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Data Transfer",
+			"item": [
+				{
+					"name": "Get All Assets (just to check)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"\n    },\n    \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/cp/api/management/v3/assets/request",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"assets",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check all credentials (consumer)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo="
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/cHJvdmlkZXI=/credentials",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants",
+								"cHJvdmlkZXI=",
+								"credentials"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check all credentials (provider)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo="
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/Y29uc3VtZXI=/credentials",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"cs",
+								"api",
+								"identity",
+								"v1alpha",
+								"participants",
+								"Y29uc3VtZXI=",
+								"credentials"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider's Catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// get the policy id of \"asset-1\" and save it as an environment variable",
+									"if(pm.response.code < 300 && pm.response.code >= 200){",
+									"    const dcat_datasets = pm.response.json()[\"dcat:dataset\"]",
+									"    const asset_1 = dcat_datasets.find((asset) => asset[\"@id\"] == \"asset-1\")",
+									"    const id = asset_1[\"odrl:hasPolicy\"][\"@id\"]",
+									"    pm.collectionVariables.set(\"POLICY_ID_ASSET_1\", id);    ",
+									"}",
+									"",
+									"pm.test(\"Status code is >=200 and <300\", function () {",
+									"    pm.expect(pm.response.code < 300 && pm.response.code >= 200).to.be.true",
+									"});",
+									"pm.test(\"Policy id for asset1 is set\", function(){",
+									"    pm.expect(pm.collectionVariables.get(\"POLICY_ID_ASSET_1\")).not.to.be.undefined",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"CatalogRequest\",\n    \"counterPartyAddress\": \"http://controlplane.{{PROVIDER}}.svc.cluster.local:8082/api/dsp\",\n    \"counterPartyId\": \"{{PROVIDER_ID}}\",\n    \"protocol\": \"dataspace-protocol-http\",\n    \"querySpec\": {\n        \"offset\": 0,\n        \"limit\": 50\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/catalog/request",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"catalog",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Initiate Contract Negotiation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"CONTRACT_NEGOTIATION_ID\", pm.response.json()[\"@id\"])",
+									"",
+									"pm.test(\"Status code is >=200 and <300\", function () {",
+									"    pm.expect(pm.response.code < 300 && pm.response.code >= 200).to.be.true",
+									"});",
+									"pm.test(\"Contract negotiation id is set\", function(){",
+									"    pm.expect(pm.collectionVariables.get(\"CONTRACT_NEGOTIATION_ID\")).not.to.be.undefined",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"ContractRequest\",\n    \"counterPartyAddress\": \"http://controlplane.{{PROVIDER}}.svc.cluster.local:8082/api/dsp\",\n    \"counterPartyId\": \"{{PROVIDER_ID}}\",\n    \"protocol\": \"dataspace-protocol-http\",\n    \"policy\": {\n        \"@type\": \"odrl:Offer\",\n        \"@id\": \"{{POLICY_ID_ASSET_1}}\",\n        \"assigner\": \"{{PROVIDER_ID}}\",\n        \"obligation\": [],\n        \"prohibition\": [],\n        \"permission\": {\n            \"action\": \"odrl:use\",\n            \"constraint\": {\n                \"leftOperand\": {\n                    \"@id\": \"MembershipCredential\"\n                },\n                \"operator\": {\n                    \"@id\": \"odrl:eq\"\n                },\n                \"rightOperand\": \"active\"\n            }\n        },\n        \"target\": \"asset-1\"\n    },\n    \"callbackAddresses\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/contractnegotiations",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"contractnegotiations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Poll Contract Negotiations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// get the contact agreement id and save it as an environment variable",
+									"if(pm.response.code < 300 && pm.response.code >= 200 && pm.response.json().length > 0){",
+									"    var find_negotiation;",
+									"    if (pm.collectionVariables.has(\"CONTRACT_NEGOTIATION_ID\")){",
+									"        find_negotiation = pm.response.json().find((el) => el[\"@id\"] == pm.collectionVariables.get(\"CONTRACT_NEGOTIATION_ID\"))",
+									"    }",
+									"",
+									"    if(find_negotiation){",
+									"        const contractAgreementId = find_negotiation[\"contractAgreementId\"];",
+									"        pm.collectionVariables.set(\"AGREEMENT_ID\", contractAgreementId);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is >=200 and <300\", function () {",
+									"    pm.expect(pm.response.code < 300 && pm.response.code >= 200).to.be.true",
+									"});",
+									"pm.test(\"Contract Agreement ID is set\", function(){",
+									"    pm.expect(pm.collectionVariables.get(\"AGREEMENT_ID\")).not.to.be.undefined",
+									"})",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/contractnegotiations/request",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"contractnegotiations",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start Transfer Process",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"assetId\": \"asset-1\",\n    \"counterPartyAddress\":  \"http://controlplane.{{PROVIDER}}.svc.cluster.local:8082/api/dsp\",\n    \"connectorId\": \"{{PROVIDER_ID}}\",\n    \"contractId\": \"{{AGREEMENT_ID}}\",\n    \"dataDestination\": {\n        \"type\": \"HttpProxy\"\n    },\n    \"protocol\": \"dataspace-protocol-http\",\n    \"transferType\": \"HttpData-PULL\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/transferprocesses",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"transferprocesses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Poll Transfer Requests",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Api-Key",
+								"value": "password"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/transferprocesses/request",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"transferprocesses",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all endpoint information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// get the transfer process id of \"asset-1\" and save it as an environment variable if the response body is not empty",
+									"if(pm.response.code < 300 && pm.response.code >= 200 && pm.response.json().length > 0){",
+									"  const transferProcessId = pm.response.json()[0][\"transferProcessId\"];",
+									"  pm.collectionVariables.set(\"TRANSFER_PROCESS_ID\", transferProcessId);",
+									"}",
+									"",
+									"pm.test(\"Status code is >=200 and <300\", function () {",
+									"    pm.expect(pm.response.code < 300 && pm.response.code >= 200).to.be.true",
+									"});",
+									"pm.test(\"Transfer process id is set\", function(){",
+									"    pm.expect(pm.collectionVariables.get(\"TRANSFER_PROCESS_ID\")).not.to.be.undefined",
+									"})",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/edrs/request",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"edrs",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get access credentials for transfer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// extract the endpoint URL and the authorization header",
+									"if(pm.response.code < 300 && pm.response.code >= 200 ){",
+									"  const url = pm.response.json().endpoint",
+									"  pm.collectionVariables.set(\"ENDPOINT\", url);",
+									"",
+									"  const auth = pm.response.json().authorization",
+									"  pm.collectionVariables.set(\"AUTHORIZATION\", auth);",
+									"}",
+									"",
+									"pm.test(\"Endpoint should be defined\", function(){",
+									"    pm.expect(pm.collectionVariables.get(\"ENDPOINT\")).to.not.be.undefined;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Auth token should be defined\", function(){",
+									"    pm.expect(pm.collectionVariables.get(\"AUTHORIZATION\")).to.not.be.undefined;",
+									"});",
+									"",
+									"pm.test(\"Status code is >=200 and <300\", function () {",
+									"    pm.expect(pm.response.code < 300 && pm.response.code >= 200).to.be.true",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EDC_HOST}}/{{CONSUMER}}/cp/api/management/v3/edrs/{{TRANSFER_PROCESS_ID}}/dataaddress",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{CONSUMER}}",
+								"cp",
+								"api",
+								"management",
+								"v3",
+								"edrs",
+								"{{TRANSFER_PROCESS_ID}}",
+								"dataaddress"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download data from provider",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "{{AUTHORIZATION}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EDC_HOST}}/{{PROVIDER}}/public/api/public/",
+							"host": [
+								"{{EDC_HOST}}"
+							],
+							"path": [
+								"{{PROVIDER}}",
+								"public",
+								"api",
+								"public",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Comfort API",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"counterPartyDid\":\"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/cp/api/mgmt/v1alpha/participants/consumer/catalog",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"cp",
+						"api",
+						"mgmt",
+						"v1alpha",
+						"participants",
+						"consumer",
+						"catalog"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": ""
+		},
+		{
+			"key": "issuer_apiKey",
+			"value": ""
+		},
+		{
+			"key": "issuer_clientId",
+			"value": ""
+		},
+		{
+			"key": "issuer_clientSecret",
+			"value": ""
+		},
+		{
+			"key": "tenant_clientId",
+			"value": ""
+		},
+		{
+			"key": "tenant_clientSecret",
+			"value": ""
+		},
+		{
+			"key": "tenant_apiKey",
+			"value": ""
+		}
+	]
+}

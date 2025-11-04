@@ -46,6 +46,7 @@ edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", versio
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+edc-spi-transaction= { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 
 
 # identityhub SPI modules

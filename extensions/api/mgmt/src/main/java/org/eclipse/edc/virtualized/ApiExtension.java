@@ -1,4 +1,4 @@
-package org.eclipse.edc.virtualized.api;
+package org.eclipse.edc.virtualized;
 
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -15,8 +15,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.api.management.WrapperApiController;
 import org.eclipse.edc.virtualized.api.participant.ParticipantContextApiController;
+import org.eclipse.edc.virtualized.service.OnboardingService;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
@@ -51,6 +53,8 @@ public class ApiExtension implements ServiceExtension {
     private PolicyDefinitionService policyService;
     @Inject
     private ContractDefinitionService contractDefinitionService;
+    @Inject
+    private TransactionContext transactionContext;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -58,7 +62,8 @@ public class ApiExtension implements ServiceExtension {
         portMappingRegistry.register(portMapping);
 
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiController(service, configService, vault, selectorService, assetService, policyService, contractDefinitionService));
+        var onboardingService = new OnboardingService(transactionContext, service, configService, vault, selectorService, assetService, policyService, contractDefinitionService);
+        webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiController(onboardingService));
         webService.registerResource(ApiContext.MANAGEMENT, new WrapperApiController(catalogService, didResolverRegistry, participantContextService));
 
     }
