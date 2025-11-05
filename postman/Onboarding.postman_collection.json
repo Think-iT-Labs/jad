@@ -532,7 +532,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/cHJvdmlkZXI=\",\n            \"id\": \"provider-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane:8082/api/dsp/provider/2025-1\",\n            \"id\": \"provider-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantId\": \"provider\",\n    \"participantContextId\": \"provider\",\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"key\": {\n        \"keyId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"privateKeyAlias\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    }\n}",
+							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/cHJvdmlkZXI=\",\n            \"id\": \"provider-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane.edc-v.svc.cluster.local:8082/api/dsp/provider/2025-1\",\n            \"id\": \"provider-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantId\": \"provider\",\n    \"participantContextId\": \"provider\",\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"key\": {\n        \"keyId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"privateKeyAlias\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -661,6 +661,46 @@
 		},
 		{
 			"name": "Get Catalog",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"try {",
+							"    const json = pm.response.json();",
+							"",
+							"    // Navigate the expected structure: Catalog -> dataset[0] -> hasPolicy[0] -> @id",
+							"    const datasets = json.dataset || [];",
+							"    const firstDataset = datasets[0] || {};",
+							"    const policies = firstDataset.hasPolicy || [];",
+							"    const firstPolicy = policies[0] || {};",
+							"    const policyId = firstPolicy['@id'];",
+							"",
+							"    if (policyId && typeof policyId === 'string') {",
+							"        pm.collectionVariables.set('POLICY_ID', policyId);",
+							"        console.log('POLICY_ID set to:', policyId);",
+							"    } else {",
+							"        console.warn('Policy ID not found in response at dataset[0].hasPolicy[0][\"@id\"]');",
+							"    }",
+							"",
+							"    // Optional: assertion to ensure it exists",
+							"    pm.test('Policy ID is present and stored', function () {",
+							"        pm.expect(policyId, 'Policy ID should exist').to.be.a('string').and.not.empty;",
+							"    });",
+							"",
+							"} catch (e) {",
+							"    console.error('Failed to parse response or set POLICY_ID:', e);",
+							"    pm.test('Response is valid JSON', function () {",
+							"        throw e;",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -698,7 +738,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"providerId\":\"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"policyId\": \"ZWUzNGZjNTQtOWFmNS00OTE0LWE0ZjEtOGYzYmJjYjQyNmMz:YTUyNTNjMzUtYjQ0Ni00MmExLTkwZmEtYmJiOTUwYzZmNGM1:ZTAwMmZmZWYtNmUxNS00MjE4LWI1N2ItODc3MmMxMWUzNjE1\",\n    \"assetId\":\"a5253c35-b446-42a1-90fa-bbb950c6f4c5\"\n}",
+					"raw": "{\n    \"providerId\":\"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"policyId\": \"{{POLICY_ID}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"

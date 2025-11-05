@@ -45,7 +45,6 @@ edcv-nats-publisher-tp = { module = "org.eclipse.edc.virtualized:transfer-proces
 edcv-nats-publisher-cn = { module = "org.eclipse.edc.virtualized:negotiation-cdc-publisher-nats", version.ref = "edc" }
 
 # EDC spi dependencies
-edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
 edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
@@ -81,11 +80,10 @@ edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-bom", version.
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
 
 # Third party deps
-
-bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 nats-client = { module = "io.nats:jnats", version = "2.23.0" }
 tink = { module = "com.google.crypto.tink:tink", version = "1.7.0" }
+
 [bundles]
 dcp = [
     "edc-dcp",
