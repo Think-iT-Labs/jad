@@ -5,6 +5,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.virtualized.service.OnboardingException;
 import org.eclipse.edc.virtualized.service.OnboardingService;
@@ -34,8 +35,11 @@ public class ParticipantContextApiController {
             onboardingService.onboardParticipant(manifest);
             var base64 = Base64.getUrlEncoder().encodeToString(manifest.getParticipantContextId().getBytes());
             return Response.created(URI.create("/v1alpha/participants/" + base64)).build();
-        } catch (OnboardingException obe) {
-            return parseError(obe.getFailure());
+        } catch (EdcException e) {
+            if (e.getCause() instanceof OnboardingException obe)
+                return parseError(obe.getFailure());
+            else
+                return Response.serverError().entity(e.getMessage()).build();
         }
     }
 

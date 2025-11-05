@@ -11,3 +11,4 @@ resources:
   - issuerservice.yaml
   - identityhub-config.yaml
   - identityhub.yaml
+

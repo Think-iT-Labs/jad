@@ -84,15 +84,15 @@ public class WrapperApiController {
                 .whenComplete((result, throwable) -> {
                     try {
                         if (throwable != null) {
-                            response.resume(throwable);
+                            response.resume(Response.status(500).entity(throwable.getMessage()).build());
 
                         } else if (result.succeeded()) {
                             response.resume(result.getContent());
                         } else {
-                            response.resume(new BadGatewayException(result.getFailureDetail()));
+                            response.resume(Response.status(500).entity(result.getFailureDetail()).build());
                         }
                     } catch (Throwable mapped) {
-                        response.resume(mapped);
+                        response.resume(Response.status(500).entity(mapped.getMessage()).build());
                     }
                 });
 

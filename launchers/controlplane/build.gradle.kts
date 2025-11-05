@@ -35,6 +35,8 @@ dependencies {
     runtimeOnly(libs.edc.core.token)
     runtimeOnly(libs.edc.core.jersey)
     runtimeOnly(libs.edc.core.jetty)
+    runtimeOnly(libs.edc.core.edrstore)
+    runtimeOnly(libs.edc.edrstore.receiver)
     runtimeOnly(libs.edc.api.observability)
     runtimeOnly(libs.bundles.dcp)
     runtimeOnly(libs.edc.core.controlplane) {
@@ -54,6 +56,7 @@ dependencies {
 
     runtimeOnly(project(":extensions:api:mgmt"))
     runtimeOnly(project(":extensions:dcp-impl"))
+    runtimeOnly(project(":extensions:seed:nats"))
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

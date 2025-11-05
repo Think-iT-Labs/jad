@@ -19,7 +19,8 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(libs.edc.bom.dataplane){
+    runtimeOnly(libs.tink)
+    implementation(libs.edc.bom.dataplane){
         exclude("org.eclipse.edc", "data-plane-self-registration")
     }
     runtimeOnly(libs.edc.dataplane.v2)

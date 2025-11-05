@@ -16,6 +16,7 @@ edc-core-jersey = { module = "org.eclipse.edc:jersey-core", version.ref = "edc" 
 edc-core-jetty = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
 edc-core-token = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
 edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
+edc-core-edrstore = { module = "org.eclipse.edc:edr-store-core", version.ref = "edc" }
 edc-dcp = { module = "org.eclipse.edc:identity-trust-service", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-dataplane-v2 = { module = "org.eclipse.edc:data-plane-public-api-v2", version.ref = "edc" }
@@ -28,6 +29,8 @@ edc-store-participantcontext-sql = { module = "org.eclipse.edc:participantcontex
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 edc-lib-jws2020 = { module = "org.eclipse.edc:jws2020-lib", version.ref = "edc" }
 edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
+edc-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
+edc-edrstore-receiver = { module = "org.eclipse.edc:edr-store-receiver", version.ref = "edc" }
 
 # EDC-V dependencies
 edcv-core-connector = { module = "org.eclipse.edc.virtualized:v-connector-core", version.ref = "edc" }
@@ -36,10 +39,10 @@ edcv-core-transfermanager = { module = "org.eclipse.edc.virtualized:transfer-pro
 edcv-banner = { module = "org.eclipse.edc.virtualized:banner-extension", version.ref = "edc" }
 edcv-protocols-dsp = { module = "org.eclipse.edc.virtualized:dsp", version.ref = "edc" }
 edcv-cdc-postgres = { module = "org.eclipse.edc.virtualized:postgres-cdc", version.ref = "edc" }
-edcv-nats-subscriber-tp = {module = "org.eclipse.edc.virtualized:transfer-process-subscriber-nats", version.ref = "edc"}
-edcv-nats-subscriber-cn = {module = "org.eclipse.edc.virtualized:negotiation-subscriber-nats", version.ref = "edc"}
-edcv-nats-publisher-tp = {module = "org.eclipse.edc.virtualized:transfer-process-cdc-publisher-nats", version.ref = "edc"}
-edcv-nats-publisher-cn = {module = "org.eclipse.edc.virtualized:negotiation-cdc-publisher-nats", version.ref = "edc"}
+edcv-nats-subscriber-tp = { module = "org.eclipse.edc.virtualized:transfer-process-subscriber-nats", version.ref = "edc" }
+edcv-nats-subscriber-cn = { module = "org.eclipse.edc.virtualized:negotiation-subscriber-nats", version.ref = "edc" }
+edcv-nats-publisher-tp = { module = "org.eclipse.edc.virtualized:transfer-process-cdc-publisher-nats", version.ref = "edc" }
+edcv-nats-publisher-cn = { module = "org.eclipse.edc.virtualized:negotiation-cdc-publisher-nats", version.ref = "edc" }
 
 # EDC spi dependencies
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -53,6 +56,7 @@ edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "e
 edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
+edc-spi-edrstore = { module = "org.eclipse.edc:edr-store-spi", version.ref = "edc" }
 
 
 # identityhub SPI modules
@@ -80,7 +84,8 @@ edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sq
 
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
-
+nats-client = { module = "io.nats:jnats", version = "2.23.0" }
+tink = { module = "com.google.crypto.tink:tink", version = "1.7.0" }
 [bundles]
 dcp = [
     "edc-dcp",

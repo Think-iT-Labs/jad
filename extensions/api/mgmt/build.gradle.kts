@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.edc.spi.participantcontext.config)
     implementation(libs.edc.spi.dataplane.selector)
     implementation(libs.edc.spi.transaction)
+    implementation(libs.edc.spi.edrstore)
 
     implementation(libs.edc.did.core)
 }

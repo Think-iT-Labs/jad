@@ -11,7 +11,7 @@ public class Data {
     public static final Policy MEMBERSHIP_POLICY = Policy.Builder.newInstance()
             .permission(Permission.Builder.newInstance()
                     .action(Action.Builder.newInstance()
-                            .type("use")
+                            .type("http://www.w3.org/ns/odrl/2/use")
                             .build())
                     .constraint(AtomicConstraint.Builder.newInstance()
                             .leftExpression(new LiteralExpression("MembershipCredential"))

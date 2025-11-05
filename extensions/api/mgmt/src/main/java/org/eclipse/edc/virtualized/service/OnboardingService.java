@@ -12,12 +12,6 @@ import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextC
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -86,7 +80,7 @@ public class OnboardingService {
                             .participantContextId(manifest.getParticipantContextId())
                             .allowedSourceType("HttpData")
                             .allowedTransferType("HttpData-PULL")
-                            .url("http://dataplane.edc-v.cluster.svc.local:8083/api/control/v1/dataflows")
+                            .url("http://dataplane.edc-v.svc.cluster.local:8083/api/control/v1/dataflows")
                             .build())
                     .orElseThrow(OnboardingException::new);
 
@@ -129,9 +123,9 @@ public class OnboardingService {
                 .property("description", "This asset requires the Membership credential to access")
                 .dataAddress(DataAddress.Builder.newInstance()
                         .type("HttpData")
-                        .property("baseUrl", "https://jsonplaceholder.typicode.com/todos")
-                        .property("proxyPath", "true")
-                        .property("proxyQueryParams", "true")
+                        .property("https://w3id.org/edc/v0.0.1/ns/baseUrl", "https://jsonplaceholder.typicode.com/todos")
+                        .property("https://w3id.org/edc/v0.0.1/ns/proxyPath", "true")
+                        .property("https://w3id.org/edc/v0.0.1/ns/proxyQueryParams", "true")
                         .build())
                 .build();
         return assetService.create(asset1);
