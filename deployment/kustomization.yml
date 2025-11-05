@@ -1,0 +1,13 @@
+resources:
+  - edcv-namespace.yaml
+  - vault.yaml
+  - postgres.yaml
+  - nats.yaml
+  - controlplane-config.yaml
+  - controlplane.yaml
+  - dataplane-config.yaml
+  - dataplane.yaml
+  - issuerservice-config.yaml
+  - issuerservice.yaml
+  - identityhub-config.yaml
+  - identityhub.yaml

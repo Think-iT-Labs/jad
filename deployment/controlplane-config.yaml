@@ -13,6 +13,8 @@ data:
   edc.iam.credential.revocation.mimetype: "application/json"
 
   # web config
+  web.http.port: "8080"
+  web.http.path: "/api"
   web.http.protocol.port: "8082"
   web.http.protocol.path: "/api/dsp"
   web.http.management.port: "8081"

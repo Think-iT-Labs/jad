@@ -22,6 +22,34 @@ spec:
           imagePullPolicy: Never
           envFrom:
             - configMapRef: { name: controlplane-config }
+          ports:
+            - containerPort: 8081
+              name: management-port
+            - containerPort: 8080
+              name: default-port
+            - containerPort: 1044
+              name: debug-port
+          livenessProbe:
+            httpGet:
+              path: /api/check/liveness
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 120
+          readinessProbe:
+            httpGet:
+              path: /api/check/readiness
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 120
+          startupProbe:
+            httpGet:
+              path: /api/check/startup
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 120
       restartPolicy: Always
 
 ---

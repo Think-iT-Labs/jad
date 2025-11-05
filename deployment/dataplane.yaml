@@ -27,6 +27,10 @@ spec:
               name: public-port
             - containerPort: 1044
               name: debug-port
+            - containerPort: 8083
+              name: control-port
+            - containerPort: 8080
+              name: health-port
           livenessProbe:
             httpGet:
               path: /api/check/liveness
@@ -58,8 +62,11 @@ metadata:
 spec:
   type: NodePort
   selector:
-    App: dataplane
+    app: dataplane
   ports:
+    - name: health
+      port: 8080
+      targetPort: 8080
     - name: control
       port: 8083
       targetPort: 8083
