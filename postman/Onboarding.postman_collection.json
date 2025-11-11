@@ -190,6 +190,11 @@
 							"type": "oauth2",
 							"oauth2": [
 								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
+									"type": "string"
+								},
+								{
 									"key": "tokenType",
 									"value": "Bearer",
 									"type": "string"
@@ -232,11 +237,6 @@
 								{
 									"key": "username",
 									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "tokenName",
-									"value": "admin-access",
 									"type": "string"
 								},
 								{
@@ -492,6 +492,61 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "tokenName",
+									"value": "admin-access",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "edc-v-admin-secret",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "management-api:read management-api:write identity-api:read identity-api:write",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "edcv-admin",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "http://keycloak.localhost/realms/edcv/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "Bearer",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -574,7 +629,12 @@
 								},
 								{
 									"key": "accessToken",
-									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJHX29YUWE3dVNmRkZLZmdpMmtCNV9nTUF6OW5HNTRJLUpBSVZLa0cxMmpNIn0.eyJleHAiOjE3NjI1MjI4OTcsImlhdCI6MTc2MjUyMjgzNywianRpIjoib25sdHJ0OmQ2Mjg1MWIzLWY2MDUtOWYwMy0xY2FhLWY1N2M5YzdmNTNhOSIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6IjA2N2Y2MzAyLTJhNmItY2MwZS1lOTYwLTQ1MDcyMWEwZTViZiIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCJ9.AakkB2FmoWHTsoxIWFZgkRx3o-RXtsIPXW662gJ3_AjQNIh9RV8x2IqgT8weWfzNlm04OsKNLLc2dQy0fBS6raFkl7-7dgImIN2pG7iriAwbGSBhQ5a86eXoawGnoM_fiTSXcLbwLICJI7c7IqS4sZPcYy1HolckpEkaVHW8CBIgFL4W0oD15O4tZLZiHFK9vpTxfi6BoY2ZsHgbtVvAdwgOjAIbq6WQpsK5mQNclnRCEOtUMgQJ3K_aPbL_yF1IBUo9GuijRnkYWjFLa3hm6zICPv_rCwTVe65VFBql7_pRFOfugBlSXotltn4qyGvxzP0GabTEEn_wvqa2JI-iUQ",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJWaTZ3ZWhrTjk0VTNpUE5mNDNVLWJjbHVwbVFBNVl5aDVKWHNBa2c2MUJNIn0.eyJleHAiOjE3NjI4NDE0NTMsImlhdCI6MTc2Mjg0MTM5MywianRpIjoib25sdHJ0OmNmOGRmN2VhLWZhYTAtNjU1Mi1mMjEzLThhNjI5Njc3ZWVkMyIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6ImE0MGJlMjgwLWRkYTktNTUwYy04YzU5LTA3MGYwYjhmZDNlMyIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCJ9.DSsv-pfhTs3t2_9GNS99DpYS0GB-gIiABDODPc9FtPp4aFoGSBx5PNcvTk4-pljJDZsY9T6VchwOer2yQ1dcNpheP-AIInD87hJaF0mHagf-pjhUFq9pCR2iXAvL1PgHBB6Sif3TJWZ13FAlltt9GO_AWamqT9V53B4pPcLH6ujBD8GdN8jd2tknWsx6R8A8hCL2pRpr8YSOvu8A4nmdxigzQ5WqRJmlQUNUmlnyhE6xvsE7nSygfpqe7FFvC-PluXUol9RAwtX0barFOMdKWFaCfvEs0Bvq3USXW4tRxds7Paf30H7JdHJBvnaqCAl6N8c8LCMhbr852sTW4FMkww",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
 									"type": "string"
 								},
 								{
@@ -610,11 +670,6 @@
 								{
 									"key": "username",
 									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "tokenName",
-									"value": "admin-access",
 									"type": "string"
 								},
 								{
@@ -868,6 +923,66 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "tokenType",
+									"value": "Bearer",
+									"type": "string"
+								},
+								{
+									"key": "accessToken",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1RDVSVlVKU0txTVhkZGl5Y3J5OUNwMkU0azRaQi1BMXlkMjdaOWZGcWVFIn0.eyJleHAiOjE3NjI4NDE3MDUsImlhdCI6MTc2Mjg0MTQwNSwianRpIjoidHJydGNjOjFlN2VlZjIyLWIwYmQtMGM3MC04N2JhLTY4NGIxYjYzN2VlYSIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL2VkY3YiLCJzdWIiOiIxNjJmMjM4Yy03NmIyLTQ1NDgtOWE0MS02MDBjNDZmNGVmOGEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJlZGN2LWFkbWluIiwic2NvcGUiOiJpZGVudGl0eS1hcGk6cmVhZCBtYW5hZ2VtZW50LWFwaTp3cml0ZSBtYW5hZ2VtZW50LWFwaTpyZWFkIGlkZW50aXR5LWFwaTp3cml0ZSIsInJvbGUiOiJlZGN2LWFkbWluIn0.nXlEEG8FTCpfIKGLmojWOupMDokcvJd6LVjsNLBKaBKaAw4PumCjxNl3IBjKu5tSX2MI1QeRokU_Z1i8w3_mWbl_MEmK55rq0ZHOSltI9PqlhmgMfn9YnHAtpF9qz85EPBZ6DWBU8EcIJnm6cbhF8Menv80bSnV6ziJq4zkZqjBk24lzITfd5vssBhHjuYM3G6kazGqANSIaQZw-qKLuJH9e5aYpbm5r4WmrUClD6P-8hoFvp_MgMI0LcwWSkvC2taxApiD_NRHlBjpUfflouRf-nLDe8qm02DcYMtzCc1_skDjb2OJgXZS7dg4a0Wr4TfY-O8nHcnvVhZnZai6mLg",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "password_credentials",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "admin-cli",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -967,6 +1082,66 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "tokenType",
+									"value": "Bearer",
+									"type": "string"
+								},
+								{
+									"key": "accessToken",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1RDVSVlVKU0txTVhkZGl5Y3J5OUNwMkU0azRaQi1BMXlkMjdaOWZGcWVFIn0.eyJleHAiOjE3NjI4NDEzMzUsImlhdCI6MTc2Mjg0MTAzNSwianRpIjoidHJydGNjOmU0ZTBjNjk2LWU5MjktMDNmOC03NGRmLWQxNDQ0ZTEwMDhkYiIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL2VkY3YiLCJzdWIiOiJhZjgyOTVmNC0zYmRjLTRhOWMtODVkMi1lZDc3NzgxMTdiMDEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJjb25zdW1lciIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCIsInJvbGUiOiJlZGN2LXBhcnRpY2lwYW50IiwicGFydGljaXBhbnRfY29udGV4dF9pZCI6ImNvbnN1bWVyIn0.XBJZTav8iasC_CGqbfulxXLDzCk_EYmdgTuM02Jhpmu5AlKEF9LGL4tXE0-Tu_dlpaq5gaIMpu1QvwYYbo2y79AiTY-oNCTX9T4PWOSlEXiaHe8-QESWlFx_JRolpNL4rSdIiZlUgsGqrPWmJfWpvNArGM0hl41fZE4tMqX7wjP3JpK8R50M7ApEDRlBx4sm44ItxyZ5TFGYSNXSGT9eM_lnsAynPB6wQcIuk20mdp1NrYR8tN3xZj_4nSc2OrHZGwd1AN07FNKhYXS66w5lkIuB1S8OHM_h0nUcBX887IOqP1GDlBreir41c38bddg4I34JH2QZeTKBqljfTQoVMg",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "password_credentials",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "admin-cli",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -1012,6 +1187,61 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "Bearer",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "password_credentials",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "admin-cli",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -1115,7 +1345,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/cp/api/mgmt/v4alpha/participants/consumer/assets/c3321be7-d0f9-4e13-9275-afac7ae1f49f",
+							"raw": "{{baseURL}}/cp/api/mgmt/v4alpha/participants/consumer/assets/d61e6755-3594-48e6-9106-b670211deb6e",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -1127,7 +1357,7 @@
 								"participants",
 								"consumer",
 								"assets",
-								"c3321be7-d0f9-4e13-9275-afac7ae1f49f"
+								"d61e6755-3594-48e6-9106-b670211deb6e"
 							]
 						}
 					},

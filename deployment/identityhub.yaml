@@ -5,16 +5,17 @@ metadata:
   name: identityhub
   namespace: edc-v
   labels:
-    App: identityhub
+    app: identityhub
 spec:
   replicas: 1
   selector:
     matchLabels:
-      App: identityhub
+      app: identityhub
   template:
     metadata:
       labels:
-        App: identityhub
+        app: identityhub
+        platform: edcv
     spec:
       containers:
         - name: identityhub
@@ -66,7 +67,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    App: identityhub
+    app: identityhub
   ports:
     - port: 7082
       targetPort: 7082

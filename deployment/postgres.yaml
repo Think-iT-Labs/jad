@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: postgres
   namespace: edc-v
+  labels:
+    platform: edcv
 spec:
   replicas: 1
   selector:
@@ -12,6 +14,7 @@ spec:
     metadata:
       labels:
         app: postgres
+        platform: edcv
     spec:
       containers:
       - name: postgres

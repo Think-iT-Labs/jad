@@ -15,6 +15,7 @@ spec:
       name: controlplane
       labels:
         app: controlplane
+        platform: edcv
     spec:
       containers:
         - name: controlplane

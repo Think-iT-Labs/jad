@@ -15,6 +15,7 @@ spec:
       name: issuerservice
       labels:
         app: issuerservice
+        platform: edcv
     spec:
       containers:
         - name: issuerservice
