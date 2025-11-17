@@ -159,7 +159,7 @@ data:
       ],
       "clients": [
         {
-          "clientId": "edcv-admin",
+          "clientId": "admin",
           "name": "EDC-V Admin User",
           "description": "Global admin client with full access",
           "enabled": true,
@@ -178,7 +178,7 @@ data:
               "consentRequired": false,
               "config": {
                 "claim.name": "role",
-                "claim.value": "edcv-admin",
+                "claim.value": "admin",
                 "jsonType.label": "String",
                 "access.token.claim": "true",
                 "id.token.claim": "true",
@@ -188,14 +188,14 @@ data:
           ]
         },
         {
-          "clientId": "edcv-provisioner",
+          "clientId": "tenant-mgr",
           "name": "Provisioner User",
           "description": "Can create and delete tenants",
           "enabled": true,
           "protocol": "openid-connect",
           "publicClient": false,
           "serviceAccountsEnabled": true,
-          "secret": "provisioner-secret",
+          "secret": "tenant-mgr-secret",
           "standardFlowEnabled": false,
           "directAccessGrantsEnabled": false,
           "fullScopeAllowed": true,
@@ -207,7 +207,7 @@ data:
               "consentRequired": false,
               "config": {
                 "claim.name": "role",
-                "claim.value": "provisioner",
+                "claim.value": "tenant-mgr",
                 "jsonType.label": "String",
                 "access.token.claim": "true",
                 "id.token.claim": "true",

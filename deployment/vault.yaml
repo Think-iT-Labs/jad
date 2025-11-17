@@ -34,6 +34,35 @@ spec:
             add:
             - IPC_LOCK
 ---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-bootstrap
+spec:
+  template:
+    spec:
+      serviceAccountName: vault-auth
+      containers:
+        - name: vault-cli
+          image: hashicorp/vault:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              vault secrets enable -path=user-secrets kv
+              cat <<EOF > /tmp/user-policy.hcl
+              path "user-secrets/*" {
+                capabilities = ["create", "read", "update", "delete", "list"]
+              }
+              EOF
+              vault policy write user-policy /tmp/user-policy.hcl
+              vault auth enable userpass
+              vault write auth/userpass/users/alice \
+                password="SuperSecret123" \
+                policies="user-policy"
+      restartPolicy: OnFailure
+
+---
 apiVersion: v1
 kind: Service
 metadata:

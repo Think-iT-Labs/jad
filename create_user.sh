@@ -36,7 +36,7 @@ curl -s -X POST "$KC_HOST/admin/realms/$REALM/clients" \
         \"name\": \"$TENANT_NAME\",
         \"description\": \"Tenant client for API access\",
         \"enabled\": true,
-        \"secret\": \"$TENANT_CLIENT_ID\",
+        \"secret\": \"$TENANT_CLIENT_ID\",can you
         \"protocol\": \"openid-connect\",
         \"publicClient\": false,
         \"serviceAccountsEnabled\": true,
@@ -65,7 +65,7 @@ curl -s -X POST "$KC_HOST/admin/realms/$REALM/clients" \
                       \"consentRequired\": false,
                       \"config\": {
                         \"claim.name\": \"role\",
-                        \"claim.value\": \"edcv-participant\",
+                        \"claim.value\": \"participant\",
                         \"jsonType.label\": \"String\",
                         \"access.token.claim\": \"true\",
                         \"id.token.claim\": \"true\",
