@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.virtualized.seed.NatsSeedExtension
+org.eclipse.edc.virtualized.vault.hashicorp.HashicorpVaultExtension

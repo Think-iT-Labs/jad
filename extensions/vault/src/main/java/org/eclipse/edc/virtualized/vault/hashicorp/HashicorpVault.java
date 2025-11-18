@@ -14,7 +14,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.virtualized.vault.hashicorp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,9 +27,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
-import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
-import org.eclipse.edc.vault.hashicorp.util.PathUtil;
+import org.eclipse.edc.virtualized.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +36,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_SECRET_METADATA_PATH;
-import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_TOKEN_HEADER;
+import static org.eclipse.edc.virtualized.vault.hashicorp.VaultConstants.VAULT_SECRET_METADATA_PATH;
+import static org.eclipse.edc.virtualized.vault.hashicorp.VaultConstants.VAULT_TOKEN_HEADER;
 
 /**
  * Implements a vault backed by Hashicorp Vault.
@@ -53,18 +51,15 @@ public class HashicorpVault implements Vault {
     private final HashicorpVaultSettings settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final HashicorpVaultTokenProvider tokenProvider;
 
     public HashicorpVault(@NotNull Monitor monitor,
                           HashicorpVaultSettings settings,
                           EdcHttpClient httpClient,
-                          ObjectMapper objectMapper,
-                          HashicorpVaultTokenProvider tokenProvider) {
+                          ObjectMapper objectMapper) {
         this.monitor = monitor;
         this.settings = settings;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.tokenProvider = tokenProvider;
     }
 
     @Override
@@ -73,7 +68,7 @@ public class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
+                .header(VAULT_TOKEN_HEADER, settings.vaultToken())
                 .get()
                 .build();
 
@@ -110,7 +105,7 @@ public class HashicorpVault implements Vault {
         var requestPayload = Map.of("data", Map.of(VAULT_DATA_ENTRY_NAME, value));
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
+                .header(VAULT_TOKEN_HEADER, settings.vaultToken())
                 .post(jsonBody(requestPayload))
                 .build();
 
@@ -130,7 +125,7 @@ public class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
+                .header(VAULT_TOKEN_HEADER, settings.vaultToken())
                 .delete()
                 .build();
 
@@ -148,9 +143,9 @@ public class HashicorpVault implements Vault {
         var sanitizedKey = key.replace("%2F", "/");
 
         var vaultApiPath = settings.secretPath();
-        var folderPath = settings.getFolderPath();
+        var folderPath = settings.folderPath();
 
-        var builder = HttpUrl.parse(settings.url())
+        var builder = HttpUrl.parse(settings.vaultUrl())
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType);

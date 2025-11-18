@@ -55,6 +55,7 @@ dependencies {
 
     runtimeOnly(libs.bouncyCastle.bcprovJdk18on)
 
+    runtimeOnly(project(":extensions:vault"))
     runtimeOnly(project(":extensions:api:mgmt"))
     runtimeOnly(project(":extensions:dcp-impl"))
     runtimeOnly(project(":extensions:seed:nats"))

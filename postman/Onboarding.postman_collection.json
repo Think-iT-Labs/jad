@@ -11,6 +11,171 @@
 			"name": "Setup Issuer",
 			"item": [
 				{
+					"name": "Vault: Create secrets mount",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-vault-token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"kv\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VAULT_HOST}}/v1/sys/mounts/issuer-secrets",
+							"host": [
+								"{{VAULT_HOST}}"
+							],
+							"path": [
+								"v1",
+								"sys",
+								"mounts",
+								"issuer-secrets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vault: create \"Issuer\" policy",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-vault-token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policy\": \"path \\\"issuer-secrets/*\\\" { capabilities = [\\\"create\\\", \\\"read\\\", \\\"update\\\", \\\"delete\\\", \\\"list\\\"] }\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VAULT_HOST}}/v1/sys/policies/acl/issuer-policy",
+							"host": [
+								"{{VAULT_HOST}}"
+							],
+							"path": [
+								"v1",
+								"sys",
+								"policies",
+								"acl",
+								"issuer-policy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vault: bind Policy to Secrets Engine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse JSON response and store clientId and clientSecret as collection variables",
+									"let jsonData;",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    try {",
+									"        jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        throw new Error(\"Response body is not valid JSON\");",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response contains auth.client_token\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"auth\");",
+									"    pm.expect(jsonData.auth).to.have.property(\"client_token\");",
+									"});",
+									"",
+									"if (jsonData && jsonData.auth && jsonData.auth.client_token) {",
+									"    pm.collectionVariables.set(\"issuer_vaultToken\", jsonData.auth.client_token);",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-vault-token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policies\": [\n        \"issuer-policy\"\n    ],\n    \"ttl\": \"24h\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VAULT_HOST}}/v1/auth/token/create",
+							"host": [
+								"{{VAULT_HOST}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"token",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Create Tenant in IssuerService",
 					"event": [
 						{
@@ -45,7 +210,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"roles\": [\n        \"admin\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuerservice.edc-v.svc.cluster.local:10012/api/issuance/v1alpha/participants/aXNzdWVy\",\n            \"id\": \"issuer-service-1\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"issuer\",\n    \"did\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"key\": {\n        \"keyId\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"privateKeyAlias\": \"key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EdDSA\"\n        }\n    }\n}",
+							"raw": "{\n    \"roles\": [\n        \"admin\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuerservice.edc-v.svc.cluster.local:10012/api/issuance/v1alpha/participants/aXNzdWVy\",\n            \"id\": \"issuer-service-1\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"issuer\",\n    \"did\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"key\": {\n        \"keyId\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"privateKeyAlias\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EdDSA\"\n        }\n    },\n    \"additionalProperties\":{\n        \"edc.vault.hashicorp.url\": \"http://vault.edc-v.svc.cluster.local:8200\",\n        \"edc.vault.hashicorp.token\": \"{{issuer_vaultToken}}\",\n        \"edc.vault.hashicorp.api.secret.path\": \"v1/issuer-secrets\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -190,18 +355,18 @@
 							"type": "oauth2",
 							"oauth2": [
 								{
-									"key": "tokenName",
-									"value": "kc-admin-access",
-									"type": "string"
-								},
-								{
 									"key": "tokenType",
 									"value": "Bearer",
 									"type": "string"
 								},
 								{
 									"key": "accessToken",
-									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJHX29YUWE3dVNmRkZLZmdpMmtCNV9nTUF6OW5HNTRJLUpBSVZLa0cxMmpNIn0.eyJleHAiOjE3NjI1MjI4ODUsImlhdCI6MTc2MjUyMjgyNSwianRpIjoib25sdHJ0OjExODk0NDhlLWNlNzMtZTk4MC02NmVlLTJmYzRlNjJhYmQ0OSIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6IjA2N2Y2MzAyLTJhNmItY2MwZS1lOTYwLTQ1MDcyMWEwZTViZiIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCJ9.KdX2D4ibX2xHsTJX48ai-6Shi8_74_zbUAJ2zSZ4y3MvxNUn9JBGGkMy-GNV6xFWe1GpWr0_7RVtQIz9jc9g66xncpT_ktu05ZN8N-dm6PU_SJNpJVSEi8EU2cc1iThya2vgawJqi8R8Vy3uluiIMkAez5m7CVvdpKDnlCtBS3QBEiAvdXsGGCtpjEadhUnq-iBlBNeY5pAH4yapxM3wF01GWskbIUbU93M8xzupsoaPKa8AnA561eIWvZ6kN0X-R5n8L6z5Fh9JGHpR2HqcfcLfddGgxuZDkXCTGHQdVEAfswKrZ9ea3217wG9WUTY-6G6lDs95RiesipiXMq-xhg",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJNdTdCZjJCc2dzMjJ2dG1wcF9PTmpaeG84SjV3ZnFBZW1BYmRxVW9HVzFrIn0.eyJleHAiOjE3NjMzNzA3NDcsImlhdCI6MTc2MzM3MDY4NywianRpIjoib25sdHJvOmY5NTNiMTc2LWU5ZmQtZjA0MS0yNmE3LTUwZjkxZWMwYzNmYyIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6IjUwYTJlYjEwLTEwOGQtNTM2ZC02ZjUzLWFkZTFhOTMwZmZhYSIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSJ9.Gl-4G3hIJ13e22aEV81SvgKHbEtpTEYAPzT80lkIcNqQOtLn4-Xqk4Yp7dRq4Znkg7TEquPPKRlmtIRh0RJJQqmXXmTUtDl02ksJZ2n0TJGRrYoTQtALvpaafK1ouFbhUFSKkuS4KmztXBKPgc-zE13esqg4JQ9ZC1YumjXoNe-ZWuz766j_ztKe0uy76Ft4CLgksHw09brKRi8DCjY1ngoi-FxOisjNcMNkbLJAZWup712s9mzbc9DPqmNSu1fTQkrUc3e80tFp6_sPSm408pXa56LV1TXItDPk_rSX4uICo9LVxP0WttuyQaAFkvrF-c_TfBgBUertK4R-ViYvVQ",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
 									"type": "string"
 								},
 								{
@@ -269,6 +434,171 @@
 								"realms",
 								"edcv",
 								"clients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vault: Create secrets mount",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-vault-token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"kv\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VAULT_HOST}}/v1/sys/mounts/consumer-secrets",
+							"host": [
+								"{{VAULT_HOST}}"
+							],
+							"path": [
+								"v1",
+								"sys",
+								"mounts",
+								"consumer-secrets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vault: create \"Consumer\" policy",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-vault-token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policy\": \"path \\\"consumer-secrets/*\\\" { capabilities = [\\\"create\\\", \\\"read\\\", \\\"update\\\", \\\"delete\\\", \\\"list\\\"] }\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VAULT_HOST}}/v1/sys/policies/acl/consumer-policy",
+							"host": [
+								"{{VAULT_HOST}}"
+							],
+							"path": [
+								"v1",
+								"sys",
+								"policies",
+								"acl",
+								"consumer-policy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vault: bind Policy to Secrets Engine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse JSON response and store clientId and clientSecret as collection variables",
+									"let jsonData;",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    try {",
+									"        jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        throw new Error(\"Response body is not valid JSON\");",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response contains auth.client_token\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"auth\");",
+									"    pm.expect(jsonData.auth).to.have.property(\"client_token\");",
+									"});",
+									"",
+									"if (jsonData && jsonData.auth && jsonData.auth.client_token) {",
+									"    pm.collectionVariables.set(\"tenant_vaultToken\", jsonData.auth.client_token);",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "x-vault-token",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policies\": [\n        \"consumer-policy\"\n    ],\n    \"ttl\": \"24h\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{VAULT_HOST}}/v1/auth/token/create",
+							"host": [
+								"{{VAULT_HOST}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"token",
+								"create"
 							]
 						}
 					},
@@ -496,6 +826,11 @@
 							"type": "oauth2",
 							"oauth2": [
 								{
+									"key": "clientId",
+									"value": "admin",
+									"type": "string"
+								},
+								{
 									"key": "tokenName",
 									"value": "admin-access",
 									"type": "string"
@@ -508,11 +843,6 @@
 								{
 									"key": "scope",
 									"value": "management-api:read management-api:write identity-api:read identity-api:write",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "admin",
 									"type": "string"
 								},
 								{
@@ -551,7 +881,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"participantContextId\": \"consumer\",\n    \"participantId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\"\n}",
+							"raw": "{\n    \"participantContextId\": \"consumer\",\n    \"participantId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\",\n    \"secretsPath\": \"consumer-secrets\",\n    \"vaultToken\": \"{{tenant_vaultToken}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1519,6 +1849,18 @@
 		{
 			"key": "KC_HOST",
 			"value": "http://keycloak.localhost"
+		},
+		{
+			"key": "VAULT_HOST",
+			"value": ""
+		},
+		{
+			"key": "tenant_vaultToken",
+			"value": ""
+		},
+		{
+			"key": "issuer_vaultToken",
+			"value": ""
 		}
 	]
 }

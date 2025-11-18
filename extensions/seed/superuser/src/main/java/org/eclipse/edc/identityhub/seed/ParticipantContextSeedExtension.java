@@ -18,6 +18,7 @@ import org.eclipse.edc.identityhub.spi.authentication.ServicePrincipal;
 import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
+import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
@@ -47,6 +48,12 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
     private ParticipantContextService participantContextService;
     @Inject
     private Vault vault;
+    @Setting(key = "edc.vault.hashicorp.url")
+    private String url;
+    @Setting(key = "edc.vault.hashicorp.token")
+    private String token;
+    @Setting(key = "edc.vault.hashicorp.api.secret.path", required = false)
+    private String secretPath;
 
     @Override
     public String name() {
@@ -67,17 +74,24 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
             monitor.debug("super-user already exists with ID '%s', will not re-create".formatted(superUserParticipantId));
             return;
         }
-        participantContextService.createParticipantContext(ParticipantManifest.Builder.newInstance()
-                        .participantContextId(superUserParticipantId)
-                        .did("did:web:%s".formatted(superUserParticipantId)) // doesn't matter, not intended for resolution
-                        .active(true)
-                        .key(KeyDescriptor.Builder.newInstance()
-                                .keyGeneratorParams(Map.of("algorithm", "EdDSA", "curve", "Ed25519"))
-                                .keyId("%s-key".formatted(superUserParticipantId))
-                                .privateKeyAlias("%s-alias".formatted(superUserParticipantId))
-                                .build())
-                        .roles(List.of(ServicePrincipal.ROLE_ADMIN))
+
+        var manifest = ParticipantManifest.Builder.newInstance()
+                .participantContextId(superUserParticipantId)
+                .did("did:web:%s".formatted(superUserParticipantId)) // doesn't matter, not intended for resolution
+                .active(true)
+                .key(KeyDescriptor.Builder.newInstance()
+                        .keyGeneratorParams(Map.of("algorithm", "EdDSA", "curve", "Ed25519"))
+                        .keyId("%s-key".formatted(superUserParticipantId))
+                        .privateKeyAlias("%s-alias".formatted(superUserParticipantId))
                         .build())
+                .roles(List.of(ServicePrincipal.ROLE_ADMIN))
+                .additionalProperties(Map.of(
+                        "edc.vault.hashicorp.url", url,
+                        "edc.vault.hashicorp.token", token,
+                        "edc.vault.hashicorp.api.secret.path", ofNullable(secretPath).orElse("v1/secret")))
+                .build();
+
+        participantContextService.createParticipantContext(manifest)
                 .onSuccess(generatedKey -> {
                     var apiKey = ofNullable(superUserApiKey)
                             .map(key -> {

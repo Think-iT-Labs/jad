@@ -20,11 +20,13 @@ plugins {
 
 dependencies {
     runtimeOnly(project(":extensions:seed:superuser"))
+    runtimeOnly(project(":extensions:vault"))
 
     runtimeOnly(libs.edc.bom.identityhub)
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.identityhub.sql)
-
+    runtimeOnly(libs.edc.core.participantcontext.config)
+    runtimeOnly(libs.edc.store.participantcontext.config.sql)
 }
 
 application {

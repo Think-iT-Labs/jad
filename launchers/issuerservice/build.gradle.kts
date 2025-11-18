@@ -22,11 +22,14 @@ plugins {
 dependencies {
     implementation(libs.edc.issuance.spi) // for seeding the attestations
     runtimeOnly(project(":extensions:seed:superuser"))
+    runtimeOnly(project(":extensions:vault"))
     runtimeOnly(libs.edc.bom.issuerservice)
     runtimeOnly(libs.edc.ih.api.did)
     runtimeOnly(libs.edc.ih.api.participants)
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.issuerservice.sql)
+    runtimeOnly(libs.edc.core.participantcontext.config)
+    runtimeOnly(libs.edc.store.participantcontext.config.sql)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * This service is a quick-n-dirty onboarding agent, that performs all necessary tasks required to onboard a new participant into the control plane:
  * <ul>
@@ -41,6 +43,10 @@ public class OnboardingService {
     private static final String CLIENT_SECRET_ALIAS = "edc.iam.sts.oauth.client.secret.alias";
     private static final String ISSUER_ID = "edc.iam.issuer.id";
     private static final String PARTICIPANT_ID = "edc.participant.id";
+    private static final String VAULT_URL = "edc.vault.hashicorp.url";
+    private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
+    private static final String VAULT_PATH = "edc.vault.hashicorp.api.secret.path";
+
     private final TransactionContext transactionContext;
     private final ParticipantContextService participantContextStore;
     private final ParticipantContextConfigService configService;
@@ -49,8 +55,16 @@ public class OnboardingService {
     private final AssetService assetService;
     private final PolicyDefinitionService policyService;
     private final ContractDefinitionService contractDefinitionService;
+    private final String defaultVaultUrl;
 
-    public OnboardingService(TransactionContext transactionContext, ParticipantContextService participantContextStore, ParticipantContextConfigService configService, Vault vault, DataPlaneSelectorService dataPlaneSelectorService, AssetService assetService, PolicyDefinitionService policyService, ContractDefinitionService contractDefinitionService) {
+    public OnboardingService(TransactionContext transactionContext, ParticipantContextService participantContextStore,
+                             ParticipantContextConfigService configService,
+                             Vault vault,
+                             DataPlaneSelectorService dataPlaneSelectorService,
+                             AssetService assetService,
+                             PolicyDefinitionService policyService,
+                             ContractDefinitionService contractDefinitionService,
+                             String defaultVaultUrl) {
         this.transactionContext = transactionContext;
         this.participantContextStore = participantContextStore;
         this.configService = configService;
@@ -59,6 +73,7 @@ public class OnboardingService {
         this.assetService = assetService;
         this.policyService = policyService;
         this.contractDefinitionService = contractDefinitionService;
+        this.defaultVaultUrl = defaultVaultUrl;
     }
 
     public void onboardParticipant(ParticipantManifest manifest) {
@@ -73,7 +88,10 @@ public class OnboardingService {
                 CLIENT_ID, manifest.getClientId(),
                 CLIENT_SECRET_ALIAS, manifest.getClientSecretAlias(),
                 ISSUER_ID, manifest.getParticipantId(),
-                PARTICIPANT_ID, manifest.getParticipantId());
+                PARTICIPANT_ID, manifest.getParticipantId(),
+                VAULT_URL, ofNullable(manifest.getVaultUrl()).orElse(defaultVaultUrl),
+                VAULT_TOKEN, manifest.getVaultToken(),
+                VAULT_PATH, manifest.getSecretsPath());
 
         transactionContext.execute(() -> {
 

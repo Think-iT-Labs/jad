@@ -17,7 +17,8 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.edc.ih.spi.credentials)
-    implementation(libs.edc.ih.spi)
+    implementation(libs.edc.vault.hashicorp)
+    implementation(libs.edc.spi.controlplane)
+    implementation(libs.edc.spi.http)
     implementation(libs.edc.spi.participantcontext.config)
 }

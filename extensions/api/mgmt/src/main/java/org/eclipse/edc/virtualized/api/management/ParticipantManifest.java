@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -33,6 +34,21 @@ public class ParticipantManifest {
     private String tokenUrl;
     private String clientId;
     private String clientSecret;
+    private String secretsPath;
+    private String vaultUrl;
+
+    public String getVaultToken() {
+        return vaultToken;
+    }
+
+    public String getVaultUrl() {
+        return vaultUrl;
+    }
+
+    private String vaultToken;
+
+    private ParticipantManifest() {
+    }
 
     public String getTokenUrl() {
         return tokenUrl;
@@ -46,10 +62,7 @@ public class ParticipantManifest {
         return clientSecret;
     }
 
-    private ParticipantManifest() {
-    }
-
-    public String getClientSecretAlias(){
+    public String getClientSecretAlias() {
         return participantContextId + ".clientSecret";
     }
 
@@ -71,6 +84,10 @@ public class ParticipantManifest {
 
     public String getParticipantId() {
         return participantId;
+    }
+
+    public String getSecretsPath() {
+        return secretsPath;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -118,9 +135,28 @@ public class ParticipantManifest {
             return this;
         }
 
+        public Builder secretsPath(String secretsPath) {
+            manifest.secretsPath = secretsPath;
+            return this;
+        }
+        public Builder vaultUrl(String vaultUrl) {
+            manifest.vaultUrl = vaultUrl;
+            return this;
+        }
+
+        public Builder vaultToken(String vaultToken) {
+            manifest.vaultToken = vaultToken;
+            return this;
+        }
+
         public ParticipantManifest build() {
-            if(manifest.participantContextId == null){
+            Objects.requireNonNull(manifest.vaultToken, "vaultToken must be set");
+
+            if (manifest.participantContextId == null) {
                 manifest.participantContextId = UUID.randomUUID().toString();
+            }
+            if (manifest.secretsPath == null) {
+                manifest.secretsPath = manifest.participantContextId + "-secrets";
             }
             return manifest;
         }

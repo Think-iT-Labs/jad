@@ -64,10 +64,12 @@ public class ApiExtension implements ServiceExtension {
     private TransferProcessService transferProcessService;
     @Inject
     private EndpointDataReferenceStore edrStore;
+    @Setting(description = "The URL of the Hashicorp Vault", key = "edc.vault.hashicorp.url")
+    private String url;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var onboardingService = new OnboardingService(transactionContext, service, configService, vault, selectorService, assetService, policyService, contractDefinitionService);
+        var onboardingService = new OnboardingService(transactionContext, service, configService, vault, selectorService, assetService, policyService, contractDefinitionService, url);
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiController(onboardingService));
         var dataRequestService = new DataRequestService(contractNegotiationService, transferProcessService, didResolverRegistry, edrStore);
         webService.registerResource(ApiContext.MANAGEMENT, new DataApiController(catalogService, didResolverRegistry, participantContextService, dataRequestService));

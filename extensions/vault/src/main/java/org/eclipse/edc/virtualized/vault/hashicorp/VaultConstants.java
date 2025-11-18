@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp;
+package org.eclipse.edc.virtualized.vault.hashicorp;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.MediaType;
@@ -20,10 +20,11 @@ import okhttp3.MediaType;
 import java.util.Map;
 
 public interface VaultConstants {
-    TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
-    };
     String VAULT_TOKEN_HEADER = "X-Vault-Token";
-    String VAULT_REQUEST_HEADER = "X-Vault-Request";
     String VAULT_SECRET_METADATA_PATH = "metadata";
     MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
+    String VAULT_URL = "edc.vault.hashicorp.url";
+    String VAULT_TOKEN = "edc.vault.hashicorp.token";
+    String VAULT_PATH = "edc.vault.hashicorp.api.secret.path";
+    String VAULT_FOLDER = "edc.vault.hashicorp.folder";
 }

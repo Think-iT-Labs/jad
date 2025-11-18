@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.vault.hashicorp.util;
+package org.eclipse.edc.virtualized.vault.hashicorp.util;
 
 public class PathUtil {
 
