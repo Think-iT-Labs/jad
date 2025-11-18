@@ -5,6 +5,7 @@ metadata:
   namespace: edc-v
   labels:
     app: dataplane
+    type: edcv-app
 spec:
   replicas: 1
   selector:

@@ -15,6 +15,7 @@ spec:
       labels:
         app: keycloak
         platform: edcv
+        type: edcv-infra
     spec:
       containers:
       - name: keycloak
@@ -189,7 +190,7 @@ data:
         },
         {
           "clientId": "tenant-mgr",
-          "name": "Provisioner User",
+          "name": "Tenant Manager User",
           "description": "Can create and delete tenants",
           "enabled": true,
           "protocol": "openid-connect",
