@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+/**
+ * POJO to contain Hashicorp Vault credentials. Must either contain a token or (clientId, clientSecret and tokenUrl) or a vault token.
+ * Containing neither is invalid, and containing both is invalid.
+ */
 @JsonDeserialize(builder = HashicorpVaultCredentials.Builder.class)
 public final class HashicorpVaultCredentials {
     private String clientId;

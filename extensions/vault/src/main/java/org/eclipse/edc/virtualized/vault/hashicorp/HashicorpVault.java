@@ -41,7 +41,13 @@ import static org.eclipse.edc.virtualized.vault.hashicorp.VaultConstants.VAULT_S
 import static org.eclipse.edc.virtualized.vault.hashicorp.VaultConstants.VAULT_TOKEN_HEADER;
 
 /**
- * Implements a vault backed by Hashicorp Vault.
+ * Implements a vault backed by Hashicorp Vault. This implementation supports both Token-based authentication and JWT-based
+ * authentication. If JWT-based auth is used, an OAuth2 Identity Provider (for example KeyCloak) must be configured and available.
+ * <p>
+ * Using JWT-based auth will increase the number of remote calls, because first, an access token must be created, then a
+ * vault token requested, and then the vault request ist made.
+ * <p>
+ * JWT-based auth is the only authentication method that never expires, because vault tokens are <em>always</em> fetched.
  */
 class HashicorpVault implements Vault {
     private static final String VAULT_SECRET_DATA_PATH = "data";
@@ -136,9 +142,15 @@ class HashicorpVault implements Vault {
         }
     }
 
+    /**
+     * Gets a vault token using the provided vault config. If the {@link HashicorpVaultConfig#credentials()} contains a token,
+     * the token is simply returned. Otherwise, a JWT is retrieved from the IdP using the provided credentials.
+     *
+     * @param config The configuration to use.
+     */
     private String getVaultToken(HashicorpVaultConfig config) {
         // token is provided
-        if(config.credentials().getToken() != null) {
+        if (config.credentials().getToken() != null) {
             return config.credentials().getToken();
         }
 
@@ -169,6 +181,12 @@ class HashicorpVault implements Vault {
         }
     }
 
+    /**
+     * If JWT authentication is used, this method will retrieve the JWT from the IdP using the provided credentials.
+     * Credentials must contain a clientId and clientSecret.
+     *
+     * @param credentials The credentials to use
+     */
     private String getAccessToken(HashicorpVaultCredentials credentials) {
 
         // OAuth Credentials are provided
