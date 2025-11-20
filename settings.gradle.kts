@@ -24,7 +24,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "edcv-demonstrator"
+rootProject.name = "jad"
 include(":extensions:seed:superuser")
 include(":extensions:seed:nats")
 include(":extensions:api:mgmt")
