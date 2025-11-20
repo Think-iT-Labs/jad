@@ -11,7 +11,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static java.util.Optional.ofNullable;
@@ -37,21 +36,20 @@ public class HashicorpVaultExtension implements ServiceExtension {
     }
 
     @Provider
-    public ParticipantVault createVault(ServiceExtensionContext context) {
-        return new ParticipantVaultImpl(config, monitor, httpClient, new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false), context);
+    public ParticipantVault createVault() {
+        return new HashicorpParticipantVault(config, monitor, httpClient, new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false));
     }
 
-    private final class ParticipantVaultImpl implements ParticipantVault {
+    private final class HashicorpParticipantVault implements ParticipantVault {
         private final ParticipantContextConfig config;
         private final Monitor monitor;
         private final EdcHttpClient httpClient;
         private final ObjectMapper objectMapper;
 
-        private ParticipantVaultImpl(ParticipantContextConfig config,
-                                     Monitor monitor,
-                                     EdcHttpClient httpClient,
-                                     ObjectMapper objectMapper,
-                                     ServiceExtensionContext context) {
+        private HashicorpParticipantVault(ParticipantContextConfig config,
+                                          Monitor monitor,
+                                          EdcHttpClient httpClient,
+                                          ObjectMapper objectMapper) {
             this.config = config;
             this.monitor = monitor;
             this.httpClient = httpClient;

@@ -25,6 +25,8 @@ public interface VaultConstants {
     MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
     String VAULT_URL = "edc.vault.hashicorp.url";
     String VAULT_TOKEN = "edc.vault.hashicorp.token";
+    String VAULT_USER = "edc.vault.hashicorp.user";
+    String VAULT_PASSWORD = "edc.vault.hashicorp.password";
     String VAULT_PATH = "edc.vault.hashicorp.api.secret.path";
     String VAULT_FOLDER = "edc.vault.hashicorp.folder";
 }

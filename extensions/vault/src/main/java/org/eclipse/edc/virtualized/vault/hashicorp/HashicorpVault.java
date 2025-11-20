@@ -26,6 +26,7 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.virtualized.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -42,12 +43,11 @@ import static org.eclipse.edc.virtualized.vault.hashicorp.VaultConstants.VAULT_T
 /**
  * Implements a vault backed by Hashicorp Vault.
  */
-public class HashicorpVault implements Vault {
+class HashicorpVault implements Vault {
     private static final String VAULT_SECRET_DATA_PATH = "data";
     private static final String VAULT_DATA_ENTRY_NAME = "content";
 
     private final Monitor monitor;
-
     private final HashicorpVaultSettings settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -68,7 +68,7 @@ public class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.vaultToken())
+                .header(VAULT_TOKEN_HEADER, settings.getVaultToken())
                 .get()
                 .build();
 
@@ -105,7 +105,7 @@ public class HashicorpVault implements Vault {
         var requestPayload = Map.of("data", Map.of(VAULT_DATA_ENTRY_NAME, value));
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.vaultToken())
+                .header(VAULT_TOKEN_HEADER, settings.getVaultToken())
                 .post(jsonBody(requestPayload))
                 .build();
 
@@ -125,7 +125,7 @@ public class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.vaultToken())
+                .header(VAULT_TOKEN_HEADER, settings.getVaultToken())
                 .delete()
                 .build();
 
@@ -142,10 +142,10 @@ public class HashicorpVault implements Vault {
         // restore '/' characters to allow subdirectories
         var sanitizedKey = key.replace("%2F", "/");
 
-        var vaultApiPath = settings.secretPath();
-        var folderPath = settings.folderPath();
+        var vaultApiPath = settings.getSecretPath();
+        var folderPath = settings.getFolderPath();
 
-        var builder = HttpUrl.parse(settings.vaultUrl())
+        var builder = HttpUrl.parse(settings.getVaultUrl())
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType);

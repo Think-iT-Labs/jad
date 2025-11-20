@@ -8,6 +8,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.Co
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -98,7 +99,11 @@ public class OnboardingService {
             participantContextStore.createParticipantContext(participantContext)
                     .orElseThrow(OnboardingException::new);
 
-            configService.save(participantContextId, ConfigFactory.fromMap(participantConfig))
+            var config = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId(participantContextId)
+                    .entries(participantConfig)
+                    .build();
+            configService.save(config)
                     .orElseThrow(OnboardingException::new);
 
             vault.storeSecret(manifest.getClientSecretAlias(), manifest.getClientSecret())

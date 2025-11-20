@@ -189,14 +189,14 @@ data:
           ]
         },
         {
-          "clientId": "tenant-mgr",
-          "name": "Tenant Manager User",
+          "clientId": "provisioner",
+          "name": "Provisioner User",
           "description": "Can create and delete tenants",
           "enabled": true,
           "protocol": "openid-connect",
           "publicClient": false,
           "serviceAccountsEnabled": true,
-          "secret": "tenant-mgr-secret",
+          "secret": "provisioner-secret",
           "standardFlowEnabled": false,
           "directAccessGrantsEnabled": false,
           "fullScopeAllowed": true,
@@ -208,7 +208,7 @@ data:
               "consentRequired": false,
               "config": {
                 "claim.name": "role",
-                "claim.value": "tenant-mgr",
+                "claim.value": "provisioner",
                 "jsonType.label": "String",
                 "access.token.claim": "true",
                 "id.token.claim": "true",
