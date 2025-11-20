@@ -1,9 +1,9 @@
 resources:
   - edcv-namespace.yaml
-  - vault.yaml
   - postgres.yaml
   - nats.yaml
   - keycloak.yaml
+  - vault.yaml
   - controlplane-config.yaml
   - controlplane.yaml
   - dataplane-config.yaml

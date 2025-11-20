@@ -20,13 +20,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.virtualized.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -48,12 +48,12 @@ class HashicorpVault implements Vault {
     private static final String VAULT_DATA_ENTRY_NAME = "content";
 
     private final Monitor monitor;
-    private final HashicorpVaultSettings settings;
+    private final HashicorpVaultConfig settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     public HashicorpVault(@NotNull Monitor monitor,
-                          HashicorpVaultSettings settings,
+                          HashicorpVaultConfig settings,
                           EdcHttpClient httpClient,
                           ObjectMapper objectMapper) {
         this.monitor = monitor;
@@ -68,7 +68,7 @@ class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.getVaultToken())
+                .header(VAULT_TOKEN_HEADER, getVaultToken(settings))
                 .get()
                 .build();
 
@@ -105,7 +105,7 @@ class HashicorpVault implements Vault {
         var requestPayload = Map.of("data", Map.of(VAULT_DATA_ENTRY_NAME, value));
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.getVaultToken())
+                .header(VAULT_TOKEN_HEADER, getVaultToken(settings))
                 .post(jsonBody(requestPayload))
                 .build();
 
@@ -125,7 +125,7 @@ class HashicorpVault implements Vault {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var request = new Request.Builder()
                 .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, settings.getVaultToken())
+                .header(VAULT_TOKEN_HEADER, getVaultToken(settings))
                 .delete()
                 .build();
 
@@ -136,16 +136,74 @@ class HashicorpVault implements Vault {
         }
     }
 
+    private String getVaultToken(HashicorpVaultConfig config) {
+        // token is provided
+        if(config.credentials().getToken() != null) {
+            return config.credentials().getToken();
+        }
+
+        // get JWT from IdP
+        var accessToken = getAccessToken(config.credentials());
+
+        // use JWT to get vault token
+
+        var requestUri = HttpUrl.parse(config.vaultUrl()).newBuilder("v1/auth/jwt/login").build();
+        var request = new Request.Builder()
+                .url(requestUri)
+                .post(RequestBody.create("""
+                        {
+                            "role": "participant",
+                            "jwt": "%s"
+                        }
+                        """.formatted(accessToken).getBytes()))
+                .build();
+
+        try (var response = httpClient.execute(request)) {
+            if (!response.isSuccessful() || response.body() == null) {
+                throw new EdcException("Failed to obtain vault token");
+            }
+            var json = objectMapper.readValue(response.body().string(), JsonNode.class);
+            return json.path("auth").path("client_token").asText();
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    private String getAccessToken(HashicorpVaultCredentials credentials) {
+
+        // OAuth Credentials are provided
+        var requestUri = HttpUrl.parse(credentials.getTokenUrl());
+        var request = new Request.Builder()
+                .url(requestUri)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .post(RequestBody.create(
+                        "grant_type=client_credentials" +
+                                "&client_id=" + credentials.getClientId() +
+                                "&client_secret=" + credentials.getClientSecret(),
+                        MediaType.parse("application/x-www-form-urlencoded")))
+                .build();
+
+        try (var response = httpClient.execute(request)) {
+            if (!response.isSuccessful() || response.body() == null) {
+                throw new EdcException("Failed to obtain vault token");
+            }
+            var json = objectMapper.readValue(response.body().string(), JsonNode.class);
+            return json.path("access_token").asText();
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
+    }
+
     private HttpUrl getSecretUrl(String key, String entryType) {
         key = URLEncoder.encode(key, StandardCharsets.UTF_8);
 
         // restore '/' characters to allow subdirectories
         var sanitizedKey = key.replace("%2F", "/");
 
-        var vaultApiPath = settings.getSecretPath();
-        var folderPath = settings.getFolderPath();
+        var vaultApiPath = settings.secretsPath();
+        var folderPath = settings.folderPath();
 
-        var builder = HttpUrl.parse(settings.getVaultUrl())
+        var builder = HttpUrl.parse(settings.vaultUrl())
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
                 .addPathSegment(entryType);

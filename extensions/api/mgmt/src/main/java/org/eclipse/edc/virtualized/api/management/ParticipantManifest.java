@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
+import org.eclipse.edc.virtualized.vault.hashicorp.HashicorpVaultConfig;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -34,20 +35,13 @@ public class ParticipantManifest {
     private String tokenUrl;
     private String clientId;
     private String clientSecret;
-    private String secretsPath;
-    private String vaultUrl;
-
-    public String getVaultToken() {
-        return vaultToken;
-    }
-
-    public String getVaultUrl() {
-        return vaultUrl;
-    }
-
-    private String vaultToken;
+    private HashicorpVaultConfig hashicorpVaultConfig;
 
     private ParticipantManifest() {
+    }
+
+    public HashicorpVaultConfig getVaultConfig() {
+        return hashicorpVaultConfig;
     }
 
     public String getTokenUrl() {
@@ -84,10 +78,6 @@ public class ParticipantManifest {
 
     public String getParticipantId() {
         return participantId;
-    }
-
-    public String getSecretsPath() {
-        return secretsPath;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -135,28 +125,15 @@ public class ParticipantManifest {
             return this;
         }
 
-        public Builder secretsPath(String secretsPath) {
-            manifest.secretsPath = secretsPath;
-            return this;
-        }
-        public Builder vaultUrl(String vaultUrl) {
-            manifest.vaultUrl = vaultUrl;
-            return this;
-        }
-
-        public Builder vaultToken(String vaultToken) {
-            manifest.vaultToken = vaultToken;
+        public Builder vaultConfig(HashicorpVaultConfig hashicorpVaultConfig) {
+            manifest.hashicorpVaultConfig = hashicorpVaultConfig;
             return this;
         }
 
         public ParticipantManifest build() {
-            Objects.requireNonNull(manifest.vaultToken, "vaultToken must be set");
-
+            Objects.requireNonNull(manifest.hashicorpVaultConfig, "vaultConfig must not be null");
             if (manifest.participantContextId == null) {
                 manifest.participantContextId = UUID.randomUUID().toString();
-            }
-            if (manifest.secretsPath == null) {
-                manifest.secretsPath = manifest.participantContextId + "-secrets";
             }
             return manifest;
         }

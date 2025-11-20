@@ -14,19 +14,12 @@
 
 package org.eclipse.edc.virtualized.vault.hashicorp;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.MediaType;
-
-import java.util.Map;
 
 public interface VaultConstants {
     String VAULT_TOKEN_HEADER = "X-Vault-Token";
     String VAULT_SECRET_METADATA_PATH = "metadata";
     MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
-    String VAULT_URL = "edc.vault.hashicorp.url";
-    String VAULT_TOKEN = "edc.vault.hashicorp.token";
-    String VAULT_USER = "edc.vault.hashicorp.user";
-    String VAULT_PASSWORD = "edc.vault.hashicorp.password";
-    String VAULT_PATH = "edc.vault.hashicorp.api.secret.path";
-    String VAULT_FOLDER = "edc.vault.hashicorp.folder";
+    String VAULT_CONFIG = "vaultConfig";
+
 }

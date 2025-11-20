@@ -15,7 +15,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.virtualized.vault.hashicorp.HashicorpVaultExtension.NAME;
-import static org.eclipse.edc.virtualized.vault.hashicorp.HashicorpVaultSettings.forParticipant;
+import static org.eclipse.edc.virtualized.vault.hashicorp.HashicorpVaultConfig.forParticipant;
 
 @Extension(value = NAME)
 public class HashicorpVaultExtension implements ServiceExtension {

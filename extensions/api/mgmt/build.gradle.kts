@@ -19,6 +19,8 @@ plugins {
 }
 
 dependencies {
+    // todo: replace with SPI
+    implementation(project(":extensions:vault"))
     implementation(libs.edc.spi.participantcontext)
     implementation(libs.edc.core.jersey)
     implementation(libs.edc.core.jetty)

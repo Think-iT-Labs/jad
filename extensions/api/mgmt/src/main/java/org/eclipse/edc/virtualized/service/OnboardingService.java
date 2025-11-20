@@ -1,5 +1,7 @@
 package org.eclipse.edc.virtualized.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -13,11 +15,11 @@ import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextC
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.api.management.ParticipantManifest;
@@ -25,8 +27,6 @@ import org.eclipse.edc.virtualized.api.management.ParticipantManifest;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * This service is a quick-n-dirty onboarding agent, that performs all necessary tasks required to onboard a new participant into the control plane:
@@ -47,20 +47,22 @@ public class OnboardingService {
     private static final String VAULT_URL = "edc.vault.hashicorp.url";
     private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
     private static final String VAULT_PATH = "edc.vault.hashicorp.api.secret.path";
+    private static final String VAULT_CONFIG = "vaultConfig";
 
     private final TransactionContext transactionContext;
     private final ParticipantContextService participantContextStore;
     private final ParticipantContextConfigService configService;
-    private final Vault vault;
+    private final ParticipantVault vault;
     private final DataPlaneSelectorService dataPlaneSelectorService;
     private final AssetService assetService;
     private final PolicyDefinitionService policyService;
     private final ContractDefinitionService contractDefinitionService;
     private final String defaultVaultUrl;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public OnboardingService(TransactionContext transactionContext, ParticipantContextService participantContextStore,
                              ParticipantContextConfigService configService,
-                             Vault vault,
+                             ParticipantVault vault,
                              DataPlaneSelectorService dataPlaneSelectorService,
                              AssetService assetService,
                              PolicyDefinitionService policyService,
@@ -90,9 +92,7 @@ public class OnboardingService {
                 CLIENT_SECRET_ALIAS, manifest.getClientSecretAlias(),
                 ISSUER_ID, manifest.getParticipantId(),
                 PARTICIPANT_ID, manifest.getParticipantId(),
-                VAULT_URL, ofNullable(manifest.getVaultUrl()).orElse(defaultVaultUrl),
-                VAULT_TOKEN, manifest.getVaultToken(),
-                VAULT_PATH, manifest.getSecretsPath());
+                VAULT_CONFIG, toJson(manifest.getVaultConfig()));
 
         transactionContext.execute(() -> {
 
@@ -106,7 +106,7 @@ public class OnboardingService {
             configService.save(config)
                     .orElseThrow(OnboardingException::new);
 
-            vault.storeSecret(manifest.getClientSecretAlias(), manifest.getClientSecret())
+            vault.storeSecret(manifest.getParticipantContextId(), manifest.getClientSecretAlias(), manifest.getClientSecret())
                     .orElseThrow(f -> new OnboardingException(new ServiceFailure(f.getMessages(), ServiceFailure.Reason.UNEXPECTED)));
 
             dataPlaneSelectorService.addInstance(DataPlaneInstance.Builder.newInstance()
@@ -125,6 +125,14 @@ public class OnboardingService {
                     .orElseThrow(OnboardingException::new);
         });
 
+    }
+
+    private String toJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new EdcException(e);
+        }
     }
 
     private ServiceResult<PolicyDefinition> createPolicies(String participantContextId) {

@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.identityhub.seed;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.spi.authentication.ServicePrincipal;
 import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
@@ -51,7 +53,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
     private String url;
     @Setting(key = "edc.vault.hashicorp.token")
     private String token;
-    @Setting(key = "edc.vault.hashicorp.api.secret.path", required = false)
+    @Setting(key = "edc.vault.hashicorp.api.secret.path", required = false, defaultValue = "v1/secret")
     private String secretPath;
 
     @Override
@@ -74,6 +76,15 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
             return;
         }
 
+        var config = """
+                {
+                    "secretsPath": "%s",
+                    "vaultUrl": "%s",
+                    "credentials": {
+                        "token": "%s"
+                    }
+                }
+                """.formatted(secretPath, url, token);
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantContextId(superUserParticipantId)
                 .did("did:web:%s".formatted(superUserParticipantId)) // doesn't matter, not intended for resolution
@@ -84,10 +95,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
                         .privateKeyAlias("%s-alias".formatted(superUserParticipantId))
                         .build())
                 .roles(List.of(ServicePrincipal.ROLE_ADMIN))
-                .additionalProperties(Map.of(
-                        "edc.vault.hashicorp.url", url,
-                        "edc.vault.hashicorp.token", token,
-                        "edc.vault.hashicorp.api.secret.path", ofNullable(secretPath).orElse("v1/secret")))
+                .additionalProperties(Map.of("vaultConfig", config))
                 .build();
 
         participantContextService.createParticipantContext(manifest)

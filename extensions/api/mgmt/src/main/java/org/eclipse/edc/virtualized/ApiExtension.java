@@ -16,6 +16,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -41,7 +42,7 @@ public class ApiExtension implements ServiceExtension {
     @Inject
     private ParticipantContextConfigService configService;
     @Inject
-    private Vault vault;
+    private ParticipantVault vault;
     @Inject
     private CatalogService catalogService;
     @Inject

@@ -11,96 +11,7 @@
 			"name": "Setup Issuer",
 			"item": [
 				{
-					"name": "Vault: Create secrets mount",
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "root",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-vault-token",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"kv\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{VAULT_HOST}}/v1/sys/mounts/issuer-secrets",
-							"host": [
-								"{{VAULT_HOST}}"
-							],
-							"path": [
-								"v1",
-								"sys",
-								"mounts",
-								"issuer-secrets"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Vault: create \"Issuer\" policy",
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "root",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-vault-token",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"policy\": \"path \\\"issuer-secrets/*\\\" { capabilities = [\\\"create\\\", \\\"read\\\", \\\"update\\\", \\\"delete\\\", \\\"list\\\"] }\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{VAULT_HOST}}/v1/sys/policies/acl/issuer-policy",
-							"host": [
-								"{{VAULT_HOST}}"
-							],
-							"path": [
-								"v1",
-								"sys",
-								"policies",
-								"acl",
-								"issuer-policy"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Vault: bind Policy to Secrets Engine",
+					"name": "Create Vault Access (Issuer)",
 					"event": [
 						{
 							"listen": "test",
@@ -118,13 +29,16 @@
 									"    }",
 									"});",
 									"",
-									"pm.test(\"Response contains auth.client_token\", function () {",
-									"    pm.expect(jsonData).to.have.property(\"auth\");",
-									"    pm.expect(jsonData.auth).to.have.property(\"client_token\");",
+									"pm.test(\"Response contains apiKey, clientId and clientSecret\", function () {",
+									"    // pm.expect(jsonData).to.have.property(\"clientId\");",
+									"    // pm.expect(jsonData).to.have.property(\"clientSecret\");",
+									"    // pm.expect(jsonData).to.have.property(\"apiKey\");",
 									"});",
 									"",
-									"if (jsonData && jsonData.auth && jsonData.auth.client_token) {",
-									"    pm.collectionVariables.set(\"issuer_vaultToken\", jsonData.auth.client_token);",
+									"if (jsonData && jsonData.clientId && jsonData.clientSecret) {",
+									"    // pm.collectionVariables.set(\"tenant_clientId\", jsonData.clientId);",
+									"    // pm.collectionVariables.set(\"tenant_clientSecret\", jsonData.clientSecret);",
+									"    // pm.collectionVariables.set(\"tenant_apiKey\", jsonData.apiKey);",
 									"} "
 								],
 								"type": "text/javascript",
@@ -135,16 +49,61 @@
 					],
 					"request": {
 						"auth": {
-							"type": "apikey",
-							"apikey": [
+							"type": "oauth2",
+							"oauth2": [
 								{
-									"key": "value",
-									"value": "root",
+									"key": "tokenType",
+									"value": "Bearer",
 									"type": "string"
 								},
 								{
-									"key": "key",
-									"value": "x-vault-token",
+									"key": "accessToken",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJXZGh2Vm5sYVloek11SUNPcE1feVJaZFJfYl9sUURSZFMyMkhVVm5uVzhFIn0.eyJleHAiOjE3NjM2NDExMDEsImlhdCI6MTc2MzY0MTA0MSwianRpIjoib25sdHJvOjBkZGMyNzZlLWQ1MzItMmFiMy02ZDIxLWVhOWYzNWIwNmVkYiIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6IjBhZDU1YWEwLWU3MjUtMzMyMi0wMjc3LTk2M2UzZjQ2YWRhYiIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCJ9.dgh9X78A-3Zq50X-0-cjtgvgk7uaae1-DTlPI3ZIAZZ567Vs196PM7hXc2pYsdiWX2CCGr7SSaMPbK2dCwdb570s_Qd8a2o0bY4VfE53pmAwl9NyetVTNk-aEoOD399m8Qv8mYr8CYi983tIyrEIlQdsND1KqYFZWcxXMEB5OupG1YyBpNRXpUW7jOs1kEo_qTfx3x5vmFMqGejSkmBlP1YKi2RXjEOGjW7jBAuHlM39T6DAsTCoyR2ATAxmoF30zdbcRfm5QR0eRtM848nWqhiwA89wxtyLU-qODFpLXW0FqpVL9-7VSVuEKxWSZGwugl5NNK8gBuNJvktFt4WtuQ",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "admin-cli",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "password_credentials",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "kc-admin-access",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
 									"type": "string"
 								}
 							]
@@ -153,7 +112,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"policies\": [\n        \"issuer-policy\"\n    ],\n    \"ttl\": \"24h\"\n}",
+							"raw": "{\n    \"clientId\": \"{{issuer_clientId}}\",\n    \"name\": \"Issuer Client\",\n    \"description\": \"Client for Vault Access (Issuer)\",\n    \"enabled\": true,\n    \"secret\": \"{{issuer_clientSecret}}\",\n    \"protocol\": \"openid-connect\",\n    \"publicClient\": false,\n    \"serviceAccountsEnabled\": true,\n    \"standardFlowEnabled\": false,\n    \"directAccessGrantsEnabled\": false,\n    \"fullScopeAllowed\": true,\n    \"protocolMappers\": [\n        {\n            \"name\": \"participantContextId\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"participant_context_id\",\n                \"claim.value\": \"issuer\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        },\n        {\n            \"name\": \"role\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"role\",\n                \"claim.value\": \"participant\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -161,15 +120,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{VAULT_HOST}}/v1/auth/token/create",
+							"raw": "{{KC_HOST}}/admin/realms/edcv/clients",
 							"host": [
-								"{{VAULT_HOST}}"
+								"{{KC_HOST}}"
 							],
 							"path": [
-								"v1",
-								"auth",
-								"token",
-								"create"
+								"admin",
+								"realms",
+								"edcv",
+								"clients"
 							]
 						}
 					},
@@ -182,7 +141,11 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									""
+									"pm.test(\"Response contains apiKey, clientId and clientSecret\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property(\"apiKey\");",
+									"})",
+									"let apiKey = pm.response.json().apiKey;",
+									"pm.collectionVariables.set(\"issuer_apiKey\", apiKey)"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -210,7 +173,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"roles\": [\n        \"admin\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuerservice.edc-v.svc.cluster.local:10012/api/issuance/v1alpha/participants/aXNzdWVy\",\n            \"id\": \"issuer-service-1\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"issuer\",\n    \"did\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"key\": {\n        \"keyId\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"privateKeyAlias\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EdDSA\"\n        }\n    },\n    \"additionalProperties\":{\n        \"edc.vault.hashicorp.url\": \"http://vault.edc-v.svc.cluster.local:8200\",\n        \"edc.vault.hashicorp.token\": \"{{issuer_vaultToken}}\",\n        \"edc.vault.hashicorp.api.secret.path\": \"v1/issuer-secrets\"\n    }\n}",
+							"raw": "{\n    \"roles\": [\n        \"admin\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuerservice.edc-v.svc.cluster.local:10012/api/issuance/v1alpha/participants/aXNzdWVy\",\n            \"id\": \"issuer-service-1\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"issuer\",\n    \"did\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"key\": {\n        \"keyId\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"privateKeyAlias\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EdDSA\"\n        }\n    },\n    \"additionalProperties\":{\n       \"vaultConfig\": {\n            \"credentials\": {\n                \"clientId\": \"{{issuer_clientId}}\",\n                \"clientSecret\": \"{{issuer_clientSecret}}\",\n                \"tokenUrl\": \"http://keycloak.edc-v.svc.cluster.local:8080/realms/edcv/protocol/openid-connect/token\"\n            },\n            \"secretsPath\": \"v1/participants\",\n            \"folderPath\": \"{{issuer_clientId}}\",\n            \"vaultUrl\": \"http://vault.edc-v.svc.cluster.local:8200\"\n        }\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -242,7 +205,7 @@
 							"apikey": [
 								{
 									"key": "value",
-									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"value": "{{issuer_apiKey}}",
 									"type": "string"
 								},
 								{
@@ -290,7 +253,7 @@
 							"apikey": [
 								{
 									"key": "value",
-									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"value": "{{issuer_apiKey}}",
 									"type": "string"
 								},
 								{
@@ -333,10 +296,10 @@
 			]
 		},
 		{
-			"name": "Create Consumer Tenant",
+			"name": "Create EDC-V ParticipantContext",
 			"item": [
 				{
-					"name": "Create Consumer Client in KeyCloak",
+					"name": "Create API Access (using Keycloak)",
 					"event": [
 						{
 							"listen": "test",
@@ -361,7 +324,7 @@
 								},
 								{
 									"key": "accessToken",
-									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJNdTdCZjJCc2dzMjJ2dG1wcF9PTmpaeG84SjV3ZnFBZW1BYmRxVW9HVzFrIn0.eyJleHAiOjE3NjMzNzA3NDcsImlhdCI6MTc2MzM3MDY4NywianRpIjoib25sdHJvOmY5NTNiMTc2LWU5ZmQtZjA0MS0yNmE3LTUwZjkxZWMwYzNmYyIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6IjUwYTJlYjEwLTEwOGQtNTM2ZC02ZjUzLWFkZTFhOTMwZmZhYSIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSJ9.Gl-4G3hIJ13e22aEV81SvgKHbEtpTEYAPzT80lkIcNqQOtLn4-Xqk4Yp7dRq4Znkg7TEquPPKRlmtIRh0RJJQqmXXmTUtDl02ksJZ2n0TJGRrYoTQtALvpaafK1ouFbhUFSKkuS4KmztXBKPgc-zE13esqg4JQ9ZC1YumjXoNe-ZWuz766j_ztKe0uy76Ft4CLgksHw09brKRi8DCjY1ngoi-FxOisjNcMNkbLJAZWup712s9mzbc9DPqmNSu1fTQkrUc3e80tFp6_sPSm408pXa56LV1TXItDPk_rSX4uICo9LVxP0WttuyQaAFkvrF-c_TfBgBUertK4R-ViYvVQ",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJHRzl0bHVwTDRpSmtvOEhhNHVNMlBNQ0k1RWt0R053M1J5ZGdKRTJ0RC1zIn0.eyJleHAiOjE3NjM2MTkxMDksImlhdCI6MTc2MzYxOTA0OSwianRpIjoib25sdHJvOmNkZmFmZjQ3LTY1ZWYtYTE2YS1mNWU2LTdlNmU3ZmNhN2ZjNCIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6ImFjNDNmNmUyLTY1YTYtMGNkZi1lYjUwLTNkOGVhMzZmMTNlOSIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSJ9.gOBqzBQlJJWBf-IPaZrILlfNrf0_A7hzO_Cq0qRxE9p7lOCRjhlI9U701DfDsM0dyoqlzR1FKdVuV0c0ElZ2USOi6hpldX7jou5wzIk9B1en6wlZnUfveR774MLlQr3TzkSozBJmuPI2tu599Ec5zX46Qnoxvpx6jVRcm24ZsuxpUl5TkCPaHQtcS7vEbTMXTKBHoCQRASkm8DmHJsug4RjNqAANOe3LBoyZiO_pUq7N4g7Iue0rct4QnHKoqAc6r3cdrOe0vPpGV_6YNSGFcLwmRF5AU8a2fmHHSEjrcN_vzef-MqqWHqbv2_rsYH5Z4M65p36dHwSsRm-rXKv4vw",
 									"type": "string"
 								},
 								{
@@ -415,7 +378,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"clientId\": \"consumer\",\n    \"name\": \"Consumer Client\",\n    \"description\": \"Tenant client for API access\",\n    \"enabled\": true,\n    \"secret\": \"consumer-secret\",\n    \"protocol\": \"openid-connect\",\n    \"publicClient\": false,\n    \"serviceAccountsEnabled\": true,\n    \"standardFlowEnabled\": false,\n    \"directAccessGrantsEnabled\": false,\n    \"fullScopeAllowed\": true,\n    \"protocolMappers\": [\n        {\n            \"name\": \"participantContextId\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"participant_context_id\",\n                \"claim.value\": \"consumer\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        },\n        {\n            \"name\": \"role\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"role\",\n                \"claim.value\": \"participant\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        }\n    ]\n}",
+							"raw": "{\n    \"clientId\": \"{{participant_context_id}}\",\n    \"name\": \"{{participant_context_id}} Client\",\n    \"description\": \"Client for API access\",\n    \"enabled\": true,\n    \"secret\": \"{{participant_context_id}}-secret\",\n    \"protocol\": \"openid-connect\",\n    \"publicClient\": false,\n    \"serviceAccountsEnabled\": true,\n    \"standardFlowEnabled\": false,\n    \"directAccessGrantsEnabled\": false,\n    \"fullScopeAllowed\": true,\n    \"protocolMappers\": [\n        {\n            \"name\": \"participantContextId\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"participant_context_id\",\n                \"claim.value\": \"{{participant_context_id}}\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        },\n        {\n            \"name\": \"role\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"role\",\n                \"claim.value\": \"participant\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -423,11 +386,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://keycloak.localhost/admin/realms/edcv/clients",
-							"protocol": "http",
+							"raw": "{{KC_HOST}}/admin/realms/edcv/clients",
 							"host": [
-								"keycloak",
-								"localhost"
+								"{{KC_HOST}}"
 							],
 							"path": [
 								"admin",
@@ -440,172 +401,7 @@
 					"response": []
 				},
 				{
-					"name": "Vault: Create secrets mount",
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "root",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-vault-token",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"kv\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{VAULT_HOST}}/v1/sys/mounts/consumer-secrets",
-							"host": [
-								"{{VAULT_HOST}}"
-							],
-							"path": [
-								"v1",
-								"sys",
-								"mounts",
-								"consumer-secrets"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Vault: create \"Consumer\" policy",
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "root",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-vault-token",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"policy\": \"path \\\"consumer-secrets/*\\\" { capabilities = [\\\"create\\\", \\\"read\\\", \\\"update\\\", \\\"delete\\\", \\\"list\\\"] }\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{VAULT_HOST}}/v1/sys/policies/acl/consumer-policy",
-							"host": [
-								"{{VAULT_HOST}}"
-							],
-							"path": [
-								"v1",
-								"sys",
-								"policies",
-								"acl",
-								"consumer-policy"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Vault: bind Policy to Secrets Engine",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Parse JSON response and store clientId and clientSecret as collection variables",
-									"let jsonData;",
-									"",
-									"pm.test(\"Response is valid JSON\", function () {",
-									"    try {",
-									"        jsonData = pm.response.json();",
-									"        pm.expect(jsonData).to.be.an(\"object\");",
-									"    } catch (e) {",
-									"        throw new Error(\"Response body is not valid JSON\");",
-									"    }",
-									"});",
-									"",
-									"pm.test(\"Response contains auth.client_token\", function () {",
-									"    pm.expect(jsonData).to.have.property(\"auth\");",
-									"    pm.expect(jsonData.auth).to.have.property(\"client_token\");",
-									"});",
-									"",
-									"if (jsonData && jsonData.auth && jsonData.auth.client_token) {",
-									"    pm.collectionVariables.set(\"tenant_vaultToken\", jsonData.auth.client_token);",
-									"} "
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "root",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-vault-token",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"policies\": [\n        \"consumer-policy\"\n    ],\n    \"ttl\": \"24h\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{VAULT_HOST}}/v1/auth/token/create",
-							"host": [
-								"{{VAULT_HOST}}"
-							],
-							"path": [
-								"v1",
-								"auth",
-								"token",
-								"create"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Consumer Holder in IssuerService",
+					"name": "Create Holder in IssuerService",
 					"event": [
 						{
 							"listen": "test",
@@ -625,7 +421,7 @@
 							"apikey": [
 								{
 									"key": "value",
-									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
+									"value": "{{issuer_apiKey}}",
 									"type": "string"
 								},
 								{
@@ -639,7 +435,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"holderId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"name\": \"consumer tenant\"\n}",
+							"raw": "{\n    \"did\": \"{{participant_context_did}}\",\n    \"holderId\": \"{{participant_context_did}}\",\n    \"name\": \"{{participant_context_id}} tenant\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -666,7 +462,7 @@
 					"response": []
 				},
 				{
-					"name": "Create Consumer Tenant in IdentityHub",
+					"name": "Create ParticipantContext in IdentityHub",
 					"event": [
 						{
 							"listen": "test",
@@ -722,7 +518,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/Y29uc3VtZXI=\",\n            \"id\": \"consumer-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane.edc-v.svc.cluster.local:8082/api/dsp/consumer/2025-1\",\n            \"id\": \"consumer-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"consumer\",\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"key\": {\n        \"keyId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer#key-1\",\n        \"privateKeyAlias\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    }\n}",
+							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/{{participant_context_id_base64}}\",\n            \"id\": \"{{participant_context_id}}-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane.edc-v.svc.cluster.local:8082/api/dsp/{{participant_context_id}}/2025-1\",\n            \"id\": \"{{participant_context_id}}-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"{{participant_context_id}}\",\n    \"did\": \"{{participant_context_did}}\",\n    \"key\": {\n        \"keyId\": \"{{participant_context_did}}#key-1\",\n        \"privateKeyAlias\": \"{{participant_context_did}}#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    },\n    \"additionalProperties\": {\n        \"vaultConfig\": {\n            \"credentials\": {\n                \"clientId\": \"{{participant_context_id}}-vault\",\n                \"clientSecret\": \"{{participant_context_id}}-secret\",\n                \"tokenUrl\": \"http://keycloak.edc-v.svc.cluster.local:8080/realms/edcv/protocol/openid-connect/token\"\n            },\n            \"secretsPath\": \"v1/participants\",\n            \"folderPath\": \"{{participant_context_id}}/identityhub\",\n            \"vaultUrl\": \"http://vault.edc-v.svc.cluster.local:8200\"\n        }\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -746,68 +542,7 @@
 					"response": []
 				},
 				{
-					"name": "Request Credentials",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-api-key",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"issuerDid\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"holderPid\": \"credential-request-5\",\n    \"credentials\": [{\n        \"format\": \"VC1_0_JWT\",\n        \"type\": \"MembershipCredential\",\n        \"id\": \"membership-credential-def\"\n    }]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/Y29uc3VtZXI=/credentials/request",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"cs",
-								"api",
-								"identity",
-								"v1alpha",
-								"participants",
-								"Y29uc3VtZXI=",
-								"credentials",
-								"request"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Consumer in Control Plane",
+					"name": "Create ParticipantContext in Control Plane",
 					"event": [
 						{
 							"listen": "test",
@@ -881,7 +616,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"participantContextId\": \"consumer\",\n    \"participantId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\",\n    \"secretsPath\": \"consumer-secrets\",\n    \"vaultToken\": \"{{tenant_vaultToken}}\"\n}",
+							"raw": "{\n    \"participantContextId\": \"{{participant_context_id}}\",\n    \"participantId\": \"{{participant_context_did}}\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\",\n    \"vaultConfig\": {\n        \"credentials\": {\n            \"clientId\": \"{{participant_context_id}}-vault\",\n            \"clientSecret\": \"{{participant_context_id}}-secret\",\n            \"tokenUrl\": \"http://keycloak.edc-v.svc.cluster.local:8080/realms/edcv/protocol/openid-connect/token\"\n        },\n        \"secretsPath\": \"v1/participants\",\n        \"folderPath\": \"{{participant_context_id}}/identityhub\",\n        \"vaultUrl\": \"http://vault.edc-v.svc.cluster.local:8200\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -897,278 +632,6 @@
 								"cp",
 								"api",
 								"mgmt",
-								"v1alpha",
-								"participants"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {},
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "Create Provider Tenant",
-			"item": [
-				{
-					"name": "Create Provider Client in KeyCloak",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "oauth2",
-							"oauth2": [
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "accessToken",
-									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJWaTZ3ZWhrTjk0VTNpUE5mNDNVLWJjbHVwbVFBNVl5aDVKWHNBa2c2MUJNIn0.eyJleHAiOjE3NjI4NDE0NTMsImlhdCI6MTc2Mjg0MTM5MywianRpIjoib25sdHJ0OmNmOGRmN2VhLWZhYTAtNjU1Mi1mMjEzLThhNjI5Njc3ZWVkMyIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL21hc3RlciIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsInNpZCI6ImE0MGJlMjgwLWRkYTktNTUwYy04YzU5LTA3MGYwYjhmZDNlMyIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCJ9.DSsv-pfhTs3t2_9GNS99DpYS0GB-gIiABDODPc9FtPp4aFoGSBx5PNcvTk4-pljJDZsY9T6VchwOer2yQ1dcNpheP-AIInD87hJaF0mHagf-pjhUFq9pCR2iXAvL1PgHBB6Sif3TJWZ13FAlltt9GO_AWamqT9V53B4pPcLH6ujBD8GdN8jd2tknWsx6R8A8hCL2pRpr8YSOvu8A4nmdxigzQ5WqRJmlQUNUmlnyhE6xvsE7nSygfpqe7FFvC-PluXUol9RAwtX0barFOMdKWFaCfvEs0Bvq3USXW4tRxds7Paf30H7JdHJBvnaqCAl6N8c8LCMhbr852sTW4FMkww",
-									"type": "string"
-								},
-								{
-									"key": "tokenName",
-									"value": "kc-admin-access",
-									"type": "string"
-								},
-								{
-									"key": "accessTokenUrl",
-									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "password_credentials",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "admin-cli",
-									"type": "string"
-								},
-								{
-									"key": "clientSecret",
-									"value": "",
-									"type": "string"
-								},
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"clientId\": \"provider\",\n    \"name\": \"Provider Client\",\n    \"description\": \"Tenant client for API access\",\n    \"enabled\": true,\n    \"secret\": \"provider-secret\",\n    \"protocol\": \"openid-connect\",\n    \"publicClient\": false,\n    \"serviceAccountsEnabled\": true,\n    \"standardFlowEnabled\": false,\n    \"directAccessGrantsEnabled\": false,\n    \"fullScopeAllowed\": true,\n    \"protocolMappers\": [\n        {\n            \"name\": \"participantContextId\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"participant_context_id\",\n                \"claim.value\": \"provider\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        },\n        {\n            \"name\": \"role\",\n            \"protocol\": \"openid-connect\",\n            \"protocolMapper\": \"oidc-hardcoded-claim-mapper\",\n            \"consentRequired\": false,\n            \"config\": {\n                \"claim.name\": \"role\",\n                \"claim.value\": \"participant\",\n                \"jsonType.label\": \"String\",\n                \"access.token.claim\": \"true\",\n                \"id.token.claim\": \"true\",\n                \"userinfo.token.claim\": \"true\"\n            }\n        }\n    ]\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{KC_HOST}}/admin/realms/edcv/clients",
-							"host": [
-								"{{KC_HOST}}"
-							],
-							"path": [
-								"admin",
-								"realms",
-								"edcv",
-								"clients"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Provider Holder in IssuerService",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-api-key",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"holderId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"name\": \"provider tenant\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/issuer/admin/api/admin/v1alpha/participants/aXNzdWVy/holders",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"issuer",
-								"admin",
-								"api",
-								"admin",
-								"v1alpha",
-								"participants",
-								"aXNzdWVy",
-								"holders"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Provider Tenant in IdentityHub",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Parse JSON response and store clientId and clientSecret as collection variables",
-									"let jsonData;",
-									"",
-									"pm.test(\"Response is valid JSON\", function () {",
-									"    try {",
-									"        jsonData = pm.response.json();",
-									"        pm.expect(jsonData).to.be.an(\"object\");",
-									"    } catch (e) {",
-									"        throw new Error(\"Response body is not valid JSON\");",
-									"    }",
-									"});",
-									"",
-									"pm.test(\"Response contains apiKey, clientId and clientSecret\", function () {",
-									"    pm.expect(jsonData).to.have.property(\"clientId\");",
-									"    pm.expect(jsonData).to.have.property(\"clientSecret\");",
-									"    pm.expect(jsonData).to.have.property(\"apiKey\");",
-									"});",
-									"",
-									"if (jsonData && jsonData.clientId && jsonData.clientSecret) {",
-									"    pm.collectionVariables.set(\"tenant_clientId\", jsonData.clientId);",
-									"    pm.collectionVariables.set(\"tenant_clientSecret\", jsonData.clientSecret);",
-									"    pm.collectionVariables.set(\"tenant_apiKey\", jsonData.apiKey);",
-									"} "
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "apikey",
-							"apikey": [
-								{
-									"key": "value",
-									"value": "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=",
-									"type": "string"
-								},
-								{
-									"key": "key",
-									"value": "x-api-key",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://identityhub.edc-v.svc.cluster.local:7082/api/credentials/v1/participants/cHJvdmlkZXI=\",\n            \"id\": \"provider-credentialservice-1\"\n        },\n        {\n            \"type\": \"ProtocolEndpoint\",\n            \"serviceEndpoint\": \"http://controlplane.edc-v.svc.cluster.local:8082/api/dsp/provider/2025-1\",\n            \"id\": \"provider-dsp\"\n        }\n    ],\n    \"active\": true,\n    \"participantId\": \"provider\",\n    \"participantContextId\": \"provider\",\n    \"did\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"key\": {\n        \"keyId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"privateKeyAlias\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EC\"\n        }\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"cs",
-								"api",
-								"identity",
 								"v1alpha",
 								"participants"
 							]
@@ -1211,7 +674,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"issuerDid\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"holderPid\": \"credential-request-1\",\n    \"credentials\": [{\n        \"format\": \"VC1_0_JWT\",\n        \"type\": \"MembershipCredential\",\n        \"id\": \"membership-credential-def\"\n    }]\n}",
+							"raw": "{\n    \"issuerDid\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"holderPid\": \"credential-request-5\",\n    \"credentials\": [{\n        \"format\": \"VC1_0_JWT\",\n        \"type\": \"MembershipCredential\",\n        \"id\": \"membership-credential-def\"\n    }]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1219,7 +682,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/cHJvdmlkZXI=/credentials/request",
+							"raw": "{{baseURL}}/cs/api/identity/v1alpha/participants/{{participant_context_id_base64}}/credentials/request",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -1229,112 +692,9 @@
 								"identity",
 								"v1alpha",
 								"participants",
-								"cHJvdmlkZXI=",
+								"{{participant_context_id_base64}}",
 								"credentials",
 								"request"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Provider in Control Plane",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "oauth2",
-							"oauth2": [
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "accessToken",
-									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1RDVSVlVKU0txTVhkZGl5Y3J5OUNwMkU0azRaQi1BMXlkMjdaOWZGcWVFIn0.eyJleHAiOjE3NjI4NDE3MDUsImlhdCI6MTc2Mjg0MTQwNSwianRpIjoidHJydGNjOjFlN2VlZjIyLWIwYmQtMGM3MC04N2JhLTY4NGIxYjYzN2VlYSIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL2VkY3YiLCJzdWIiOiIxNjJmMjM4Yy03NmIyLTQ1NDgtOWE0MS02MDBjNDZmNGVmOGEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJlZGN2LWFkbWluIiwic2NvcGUiOiJpZGVudGl0eS1hcGk6cmVhZCBtYW5hZ2VtZW50LWFwaTp3cml0ZSBtYW5hZ2VtZW50LWFwaTpyZWFkIGlkZW50aXR5LWFwaTp3cml0ZSIsInJvbGUiOiJlZGN2LWFkbWluIn0.nXlEEG8FTCpfIKGLmojWOupMDokcvJd6LVjsNLBKaBKaAw4PumCjxNl3IBjKu5tSX2MI1QeRokU_Z1i8w3_mWbl_MEmK55rq0ZHOSltI9PqlhmgMfn9YnHAtpF9qz85EPBZ6DWBU8EcIJnm6cbhF8Menv80bSnV6ziJq4zkZqjBk24lzITfd5vssBhHjuYM3G6kazGqANSIaQZw-qKLuJH9e5aYpbm5r4WmrUClD6P-8hoFvp_MgMI0LcwWSkvC2taxApiD_NRHlBjpUfflouRf-nLDe8qm02DcYMtzCc1_skDjb2OJgXZS7dg4a0Wr4TfY-O8nHcnvVhZnZai6mLg",
-									"type": "string"
-								},
-								{
-									"key": "tokenName",
-									"value": "kc-admin-access",
-									"type": "string"
-								},
-								{
-									"key": "accessTokenUrl",
-									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "password_credentials",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "admin-cli",
-									"type": "string"
-								},
-								{
-									"key": "clientSecret",
-									"value": "",
-									"type": "string"
-								},
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"participantContextId\": \"provider\",\n    \"participantId\": \"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider\",\n    \"isActive\": true,\n    \"tokenUrl\": \"http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token\",\n    \"clientSecret\": \"{{tenant_clientSecret}}\",\n    \"clientId\": \"{{tenant_clientId}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/cp/api/mgmt/v1alpha/participants",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"cp",
-								"api",
-								"mgmt",
-								"v1alpha",
-								"participants"
 							]
 						}
 					},
@@ -1416,6 +776,36 @@
 							"type": "oauth2",
 							"oauth2": [
 								{
+									"key": "scope",
+									"value": "management-api:read",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "consumer-secret",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "consumer",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "http://keycloak.localhost/realms/edcv/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "edcv-participan",
+									"type": "string"
+								},
+								{
 									"key": "tokenType",
 									"value": "Bearer",
 									"type": "string"
@@ -1423,36 +813,6 @@
 								{
 									"key": "accessToken",
 									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1RDVSVlVKU0txTVhkZGl5Y3J5OUNwMkU0azRaQi1BMXlkMjdaOWZGcWVFIn0.eyJleHAiOjE3NjI4NDEzMzUsImlhdCI6MTc2Mjg0MTAzNSwianRpIjoidHJydGNjOmU0ZTBjNjk2LWU5MjktMDNmOC03NGRmLWQxNDQ0ZTEwMDhkYiIsImlzcyI6Imh0dHA6Ly9rZXljbG9hay5sb2NhbGhvc3QvcmVhbG1zL2VkY3YiLCJzdWIiOiJhZjgyOTVmNC0zYmRjLTRhOWMtODVkMi1lZDc3NzgxMTdiMDEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJjb25zdW1lciIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCIsInJvbGUiOiJlZGN2LXBhcnRpY2lwYW50IiwicGFydGljaXBhbnRfY29udGV4dF9pZCI6ImNvbnN1bWVyIn0.XBJZTav8iasC_CGqbfulxXLDzCk_EYmdgTuM02Jhpmu5AlKEF9LGL4tXE0-Tu_dlpaq5gaIMpu1QvwYYbo2y79AiTY-oNCTX9T4PWOSlEXiaHe8-QESWlFx_JRolpNL4rSdIiZlUgsGqrPWmJfWpvNArGM0hl41fZE4tMqX7wjP3JpK8R50M7ApEDRlBx4sm44ItxyZ5TFGYSNXSGT9eM_lnsAynPB6wQcIuk20mdp1NrYR8tN3xZj_4nSc2OrHZGwd1AN07FNKhYXS66w5lkIuB1S8OHM_h0nUcBX887IOqP1GDlBreir41c38bddg4I34JH2QZeTKBqljfTQoVMg",
-									"type": "string"
-								},
-								{
-									"key": "tokenName",
-									"value": "kc-admin-access",
-									"type": "string"
-								},
-								{
-									"key": "accessTokenUrl",
-									"value": "http://keycloak.localhost/realms/master/protocol/openid-connect/token",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "password_credentials",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "admin-cli",
-									"type": "string"
-								},
-								{
-									"key": "clientSecret",
-									"value": "",
 									"type": "string"
 								},
 								{
@@ -1852,14 +1212,18 @@
 		},
 		{
 			"key": "VAULT_HOST",
+			"value": "http://vault.localhost"
+		},
+		{
+			"key": "participant_context_id",
 			"value": ""
 		},
 		{
-			"key": "tenant_vaultToken",
+			"key": "participant_context_did",
 			"value": ""
 		},
 		{
-			"key": "issuer_vaultToken",
+			"key": "participant_context_id_base64",
 			"value": ""
 		}
 	]
