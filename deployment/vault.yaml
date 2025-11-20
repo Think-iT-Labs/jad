@@ -61,7 +61,7 @@ spec:
               value: "http://vault.edc-v.svc.cluster.local:8200"
             - name: VAULT_TOKEN
               value: "root"
-          command: [ "sh", "-c" ]
+          command: [ "sh", "-ec" ]
           args:
             - |
               # Wait for vault to be ready
@@ -71,36 +71,49 @@ spec:
                 sleep 2
               done
               echo "Vault is ready!"
-
+              
+              # Wait for Keycloak to be ready
+              echo "Waiting for Keycloak to be ready..."
+              until wget -q --spider http://keycloak.edc-v.svc.cluster.local:8080/realms/edcv/.well-known/openid-configuration > /dev/null 2>&1; do
+                echo "Keycloak not ready yet, retrying in 2 seconds..."
+                sleep 2
+              done
+              echo "Keycloak is ready!"
+              
+  
               # Enable JWT auth method
-              vault auth enable jwt
+              vault auth enable jwt || true
 
               # Configure JWT auth (example: using Keycloak as JWT backend)
               vault write auth/jwt/config \
                 jwks_url="http://keycloak.edc-v.svc.cluster.local:8080/realms/edcv/protocol/openid-connect/certs" \
-                default_role="participant"
-              
+                default_role="participant" || { echo "Failed to configure JWT auth"; exit 1; }
+
               # create mount for participants, each stores their secrets in a subdirectory
-              vault secrets enable -path=participants -version=2 kv
-              
+              vault secrets enable -path=participants -version=2 kv || { echo "Failed to enable secrets engine"; exit 1; }
+
               # get accessor for entity aliases
               ACCESSOR=$(vault auth list | grep 'jwt/' | awk '{print $3}')
+              if [ -z "$ACCESSOR" ]; then
+                echo "Failed to get JWT accessor"
+                exit 1
+              fi
               echo "Using JWT accessor: $ACCESSOR"
-              
-              
+
+
               # Allow full CRUD + list on the participant's own data path
-                       
-              cat <<EOF | vault policy write participants-restricted -
+
+              cat <<EOF | vault policy write participants-restricted - || { echo "Failed to write policy"; exit 1; }
               path "participants/data/{{identity.entity.aliases.${ACCESSOR}.name}}/*" {
                   capabilities = ["create", "read", "update", "delete", "list"]
               }
-                  
+
               path "participants/metadata/{{identity.entity.aliases.${ACCESSOR}.name}}/*" {
                    capabilities = ["list"]
               }
               EOF
 
-              vault write auth/jwt/role/participant -<<EOF
+              vault write auth/jwt/role/participant -<<EOF || { echo "Failed to create JWT role"; exit 1; }
               {
                 "role_type": "jwt",
                 "user_claim": "participant_context_id",
@@ -112,6 +125,8 @@ spec:
                 "clock_skew_leeway": 60
               }
               EOF
+
+              echo "Vault bootstrap completed successfully!"
       restartPolicy: OnFailure
 
 ---
