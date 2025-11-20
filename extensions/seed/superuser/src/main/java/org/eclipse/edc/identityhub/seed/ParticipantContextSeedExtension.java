@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.identityhub.seed;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.spi.authentication.ServicePrincipal;
 import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
@@ -76,7 +74,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
             return;
         }
 
-        var config = """
+        var rootVaultConfig = """
                 {
                     "secretsPath": "%s",
                     "vaultUrl": "%s",
@@ -85,6 +83,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
                     }
                 }
                 """.formatted(secretPath, url, token);
+        
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantContextId(superUserParticipantId)
                 .did("did:web:%s".formatted(superUserParticipantId)) // doesn't matter, not intended for resolution
@@ -95,7 +94,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
                         .privateKeyAlias("%s-alias".formatted(superUserParticipantId))
                         .build())
                 .roles(List.of(ServicePrincipal.ROLE_ADMIN))
-                .additionalProperties(Map.of("vaultConfig", config))
+                .additionalProperties(Map.of("vaultConfig", rootVaultConfig))
                 .build();
 
         participantContextService.createParticipantContext(manifest)
