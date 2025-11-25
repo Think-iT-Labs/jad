@@ -30,6 +30,7 @@ dependencies {
     runtimeOnly(libs.edcv.nats.publisher.tp)
     runtimeOnly(libs.edcv.nats.subscriber.tp)
     runtimeOnly(libs.edcv.nats.subscriber.cn)
+    runtimeOnly(libs.edcv.cel.extension)
 
     runtimeOnly(libs.edc.core.connector)
     runtimeOnly(libs.edc.core.runtime)

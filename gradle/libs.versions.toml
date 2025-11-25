@@ -45,6 +45,7 @@ edcv-nats-subscriber-tp = { module = "org.eclipse.edc.virtualized:transfer-proce
 edcv-nats-subscriber-cn = { module = "org.eclipse.edc.virtualized:negotiation-subscriber-nats", version.ref = "edc" }
 edcv-nats-publisher-tp = { module = "org.eclipse.edc.virtualized:transfer-process-cdc-publisher-nats", version.ref = "edc" }
 edcv-nats-publisher-cn = { module = "org.eclipse.edc.virtualized:negotiation-cdc-publisher-nats", version.ref = "edc" }
+edcv-cel-extension = { module = "org.eclipse.edc.virtualized:cel-extension", version.ref = "edc" }
 
 # EDC spi dependencies
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
