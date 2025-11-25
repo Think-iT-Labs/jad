@@ -20,7 +20,6 @@ plugins {
 
 dependencies {
     runtimeOnly(project(":extensions:seed:superuser"))
-    runtimeOnly(project(":extensions:vault"))
 
     runtimeOnly(libs.edc.bom.identityhub)
     runtimeOnly(libs.edc.vault.hashicorp)

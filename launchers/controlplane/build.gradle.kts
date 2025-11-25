@@ -38,6 +38,7 @@ dependencies {
     runtimeOnly(libs.edc.core.jersey)
     runtimeOnly(libs.edc.core.jetty)
     runtimeOnly(libs.edc.core.edrstore)
+    runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.edrstore.receiver)
     runtimeOnly(libs.edc.api.observability)
     runtimeOnly(libs.bundles.dcp)
@@ -56,7 +57,6 @@ dependencies {
 
     runtimeOnly(libs.bouncyCastle.bcprovJdk18on)
 
-    runtimeOnly(project(":extensions:vault"))
     runtimeOnly(project(":extensions:api:mgmt"))
     runtimeOnly(project(":extensions:dcp-impl"))
     runtimeOnly(project(":extensions:seed:nats"))

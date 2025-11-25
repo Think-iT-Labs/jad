@@ -19,7 +19,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.api.management.ParticipantManifest;
@@ -52,7 +52,7 @@ public class OnboardingService {
     private final TransactionContext transactionContext;
     private final ParticipantContextService participantContextStore;
     private final ParticipantContextConfigService configService;
-    private final ParticipantVault vault;
+    private final Vault vault;
     private final DataPlaneSelectorService dataPlaneSelectorService;
     private final AssetService assetService;
     private final PolicyDefinitionService policyService;
@@ -62,7 +62,7 @@ public class OnboardingService {
 
     public OnboardingService(TransactionContext transactionContext, ParticipantContextService participantContextStore,
                              ParticipantContextConfigService configService,
-                             ParticipantVault vault,
+                             Vault vault,
                              DataPlaneSelectorService dataPlaneSelectorService,
                              AssetService assetService,
                              PolicyDefinitionService policyService,
@@ -85,6 +85,7 @@ public class OnboardingService {
         var participantContext = ParticipantContext.Builder.newInstance()
                 .participantContextId(participantContextId)
                 .state(manifest.isActive() ? ParticipantContextState.ACTIVATED : ParticipantContextState.CREATED)
+                .identity(manifest.getParticipantId())
                 .build();
 
         var participantConfig = Map.of(TOKEN_URL, manifest.getTokenUrl(),

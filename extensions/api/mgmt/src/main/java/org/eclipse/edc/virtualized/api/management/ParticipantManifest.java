@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
-import org.eclipse.edc.virtualized.vault.hashicorp.HashicorpVaultConfig;
+import org.eclipse.edc.vault.hashicorp.HashicorpVaultSettings;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -35,13 +35,13 @@ public class ParticipantManifest {
     private String tokenUrl;
     private String clientId;
     private String clientSecret;
-    private HashicorpVaultConfig hashicorpVaultConfig;
+    private HashicorpVaultSettings hashicorpVaultSettings;
 
     private ParticipantManifest() {
     }
 
-    public HashicorpVaultConfig getVaultConfig() {
-        return hashicorpVaultConfig;
+    public HashicorpVaultSettings getVaultConfig() {
+        return hashicorpVaultSettings;
     }
 
     public String getTokenUrl() {
@@ -125,13 +125,13 @@ public class ParticipantManifest {
             return this;
         }
 
-        public Builder vaultConfig(HashicorpVaultConfig hashicorpVaultConfig) {
-            manifest.hashicorpVaultConfig = hashicorpVaultConfig;
+        public Builder vaultConfig(HashicorpVaultSettings settings) {
+            manifest.hashicorpVaultSettings = settings;
             return this;
         }
 
         public ParticipantManifest build() {
-            Objects.requireNonNull(manifest.hashicorpVaultConfig, "vaultConfig must not be null");
+            Objects.requireNonNull(manifest.hashicorpVaultSettings, "vaultConfig must not be null");
             if (manifest.participantContextId == null) {
                 manifest.participantContextId = UUID.randomUUID().toString();
             }

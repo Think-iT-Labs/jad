@@ -76,8 +76,11 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
 
         var rootVaultConfig = """
                 {
-                    "secretsPath": "%s",
-                    "vaultUrl": "%s",
+                    "config": {
+                        "secretsPath": "%s",
+                        "vaultUrl": "%s",
+                        "secretPath": "v1/secret"
+                    },
                     "credentials": {
                         "token": "%s"
                     }

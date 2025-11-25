@@ -53,6 +53,7 @@ subprojects {
                 val dockerContextDir = project.projectDir
                 dockerFile.set(file("$dockerContextDir/src/main/docker/Dockerfile"))
                 images.add("${project.name}:${project.version}")
+                images.add("ghcr.io/metaform/jad/${project.name}:${project.version}")
 
                 //images.add("${project.name}:latest")
                 // specify platform with the -Dplatform flag:
@@ -61,7 +62,7 @@ subprojects {
                 buildArgs.put("JAR", "build/libs/${project.name}.jar")
                 inputDir.set(file(dockerContextDir))
             }
-            // make sure  always runs after "dockerize" and after "copyOtel"
+            // make sure always runs after "dockerize" and after "copyOtel"
             dockerTask.dependsOn(tasks.named(ShadowJavaPlugin.SHADOW_JAR_TASK_NAME))
         }
     }

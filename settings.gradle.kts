@@ -29,8 +29,6 @@ include(":extensions:seed:superuser")
 include(":extensions:seed:nats")
 include(":extensions:api:mgmt")
 include(":extensions:dcp-impl")
-include(":extensions:vault")
-//include(":tests:performance")
 include(":tests:end2end")
 
 // launcher modules
