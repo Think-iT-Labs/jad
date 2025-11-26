@@ -110,13 +110,13 @@ vault           1/1     1            1           66m
 
 On the dataspace level, a few bits and pieces are required for the data space to become operational. These can be put in
 place by running the REST requests in the `Setup Issuer` folder in
-the [Postman collection](./postman/Onboarding.postman_collection.json):
+the [Postman collection](./postman/collections/EDC-V Onboarding.postman_collection.json):
 
 ```shell
 newman run \
   --folder "Setup Issuer" \
   --env-var "baseURL=http://localhost" \
-  ./postman/Onboarding.postman_collection.json
+  ./postman/collections/EDC-V Onboarding.postman_collection.json
 ```
 
 This creates an issuer account and puts attestation definitions and credential definitions into the issuer's database.
@@ -165,7 +165,7 @@ newman run \
   --folder "Create Provider Tenant" \
   --folder "Create Consumer Tenant" \
   --env-var "baseURL=http://localhost" \
-  ./postman/Onboarding.postman_collection.json
+  ./postman/collections/EDC-V Onboarding.postman_collection.json
 ```
 
 This sets up accounts in the IssuerService, the IdentityHub and the ControlPlane, plus it issues the
@@ -242,7 +242,7 @@ newman run --verbose \
   --folder "Get Catalog" \
   --folder "Get Data" \
   --env-var "baseURL=http://localhost" \
-  ./postman/Onboarding.postman_collection.json
+  ./postman/collections/EDC-V Onboarding.postman_collection.json
 ```
 
 This will request the catalog, which contains exactly one dataset, then initiates contract negotiation and data
@@ -322,5 +322,5 @@ curl -X POST http://keycloak.localhost/realms/edcv/protocol/openid-connect/token
 
 Copy the access token and use it in the "Authorization" header using the "Bearer" prefix.
 
-Use the requests in the `Experimental` folder in the [Postman collection](./postman/Onboarding.postman_collection.json)
+Use the requests in the `Experimental` folder in the [Postman collection](./postman/collections/EDC-V Onboarding.postman_collection.json)
 to send requests to the Management API of EDC-V.

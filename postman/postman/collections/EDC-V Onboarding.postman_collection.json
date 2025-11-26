@@ -144,7 +144,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "",
+              "raw": "{\n    \"roles\": [\n        \"admin\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuerservice.edc-v.svc.cluster.local:10012/api/issuance/v1alpha/participants/aXNzdWVy\",\n            \"id\": \"issuer-service-1\"\n        }\n    ],\n    \"active\": true,\n    \"participantContextId\": \"issuer\",\n    \"did\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer\",\n    \"key\": {\n        \"keyId\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"privateKeyAlias\": \"did:web:issuerservice.edc-v.svc.cluster.local%3A10016:issuer#key-1\",\n        \"keyGeneratorParams\": {\n            \"algorithm\": \"EdDSA\"\n        }\n    },\n    \"additionalProperties\": {\n        \"vaultConfig\": {\n            \"credentials\": {\n                \"clientId\": \"{{issuer_clientId}}\",\n                \"clientSecret\": \"{{issuer_clientSecret}}\",\n                \"tokenUrl\": \"http://keycloak.edc-v.svc.cluster.local:8080/realms/edcv/protocol/openid-connect/token\"\n            },\n            \"config\": {\n                \"secretPath\": \"v1/participants\",\n                \"folderPath\": \"{{issuer_clientId}}\",\n                \"vaultUrl\": \"http://vault.edc-v.svc.cluster.local:8200\"\n            }\n        }\n    }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1117,67 +1117,67 @@
   ],
   "variable": [
     {
-      "id": "6dd76172-28e6-4fb0-8897-c5ae3140153e",
+      "id": "5fc52030-e0b1-4ab1-98e4-aa25ca699e9b",
       "key": "baseURL",
       "value": "http://localhost"
     },
     {
-      "id": "d1b49ea3-7a3e-421b-bfbc-56e7f7f2a837",
+      "id": "00f037c4-79a7-4408-985d-297c25c4f541",
       "key": "issuer_apiKey",
       "value": ""
     },
     {
-      "id": "547c2f72-31ef-4d48-95ae-7293102525b9",
+      "id": "55016853-d2a7-461a-a114-35ee4d9f9009",
       "key": "issuer_clientId",
       "value": ""
     },
     {
-      "id": "cc393665-aca8-44c2-a768-e3fc5ca5cc40",
+      "id": "ca2ba6f7-96e6-4827-bdae-0b438c7d5a06",
       "key": "issuer_clientSecret",
       "value": ""
     },
     {
-      "id": "2f5c2841-d1b4-48cf-88a4-85cb96c7b349",
+      "id": "ad669318-5799-4e6b-9f6b-a685ac766d53",
       "key": "tenant_clientId",
       "value": ""
     },
     {
-      "id": "f293bcbf-ad14-4a9e-aa88-0237d0cafc2e",
+      "id": "a3914704-0bc9-4355-a6ba-5335b98df32c",
       "key": "tenant_clientSecret",
       "value": ""
     },
     {
-      "id": "e6039e02-bddc-4069-8a58-1909a5f85050",
+      "id": "1e8bd21e-6568-4538-bd4b-7f682ba339bc",
       "key": "tenant_apiKey",
       "value": ""
     },
     {
-      "id": "0b5a8c06-57d2-451a-8ed3-1c34066a21a1",
+      "id": "9212cc6c-291a-4a3a-82d7-00a4495eb6dd",
       "key": "POLICY_ID",
       "value": ""
     },
     {
-      "id": "dbec368b-dc48-45dc-a258-69df393b09f7",
+      "id": "bf686b1e-dd1b-4da7-b504-93aad9c1a24f",
       "key": "KC_HOST",
       "value": "http://keycloak.localhost"
     },
     {
-      "id": "8d2ac956-bc1b-4f54-ab67-b3c4d6092666",
+      "id": "99545930-8c90-4e86-ae0d-fbed19a4a85c",
       "key": "VAULT_HOST",
       "value": "http://vault.localhost"
     },
     {
-      "id": "92d56cbf-f0c5-4012-82f7-a809cfe09b94",
+      "id": "dd376a13-ec98-4719-a63b-b29e6d302ea1",
       "key": "participant_context_id",
       "value": ""
     },
     {
-      "id": "f481d6a7-1ab7-4e3d-8e2b-c7b89390c54e",
+      "id": "30ae32ba-6e52-483e-96e8-c3f0b86b4e67",
       "key": "participant_context_did",
       "value": ""
     },
     {
-      "id": "f58f1877-b0e7-49bc-b864-a1fedbdf0ff1",
+      "id": "597160bb-aecd-4310-9447-6ce88d48525a",
       "key": "participant_context_id_base64",
       "value": ""
     }
