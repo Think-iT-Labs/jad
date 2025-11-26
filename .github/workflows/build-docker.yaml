@@ -31,18 +31,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: issuerservice
-            context: launchers/issuerservice
-            dockerfile: launchers/issuerservice/src/main/docker/Dockerfile
-          - name: identity-hub
-            context: launchers/identity-hub
-            dockerfile: launchers/identity-hub/src/main/docker/Dockerfile
           - name: controlplane
             context: launchers/controlplane
             dockerfile: launchers/controlplane/src/main/docker/Dockerfile
-          - name: data-plane
-            context: launchers/data-plane
-            dockerfile: launchers/data-plane/src/main/docker/Dockerfile
+#          - name: issuerservice
+#            context: launchers/issuerservice
+#            dockerfile: launchers/issuerservice/src/main/docker/Dockerfile
+#          - name: identity-hub
+#            context: launchers/identity-hub
+#            dockerfile: launchers/identity-hub/src/main/docker/Dockerfile
+#          - name: data-plane
+#            context: launchers/data-plane
+#            dockerfile: launchers/data-plane/src/main/docker/Dockerfile
 
     steps:
       - name: Checkout code
@@ -67,7 +67,7 @@ jobs:
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Build JAR file
         run: |
-          ./gradlew -p ${{ matrix.context }} -Ppersistence=true shadowJar
+          ./gradlew -p ${{ matrix.context }} shadowJar
 
       - name: Build and push image
         uses: docker/build-push-action@v5
