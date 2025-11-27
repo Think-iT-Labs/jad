@@ -22,8 +22,6 @@ name: Build and Push Launcher Images
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build-and-push:
@@ -34,15 +32,15 @@ jobs:
           - name: controlplane
             context: launchers/controlplane
             dockerfile: launchers/controlplane/src/main/docker/Dockerfile
-#          - name: issuerservice
-#            context: launchers/issuerservice
-#            dockerfile: launchers/issuerservice/src/main/docker/Dockerfile
-#          - name: identity-hub
-#            context: launchers/identity-hub
-#            dockerfile: launchers/identity-hub/src/main/docker/Dockerfile
-#          - name: data-plane
-#            context: launchers/data-plane
-#            dockerfile: launchers/data-plane/src/main/docker/Dockerfile
+          - name: issuerservice
+            context: launchers/issuerservice
+            dockerfile: launchers/issuerservice/src/main/docker/Dockerfile
+          - name: identity-hub
+            context: launchers/identity-hub
+            dockerfile: launchers/identity-hub/src/main/docker/Dockerfile
+          - name: dataplane
+            context: launchers/dataplane
+            dockerfile: launchers/dataplane/src/main/docker/Dockerfile
 
     steps:
       - name: Checkout code
