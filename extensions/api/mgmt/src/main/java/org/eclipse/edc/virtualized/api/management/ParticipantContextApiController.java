@@ -50,10 +50,11 @@ public class ParticipantContextApiController {
             var base64 = Base64.getUrlEncoder().encodeToString(manifest.getParticipantContextId().getBytes());
             return Response.created(URI.create("/v1alpha/participants/" + base64)).build();
         } catch (EdcException e) {
-            if (e.getCause() instanceof OnboardingException obe)
+            if (e.getCause() instanceof OnboardingException obe) {
                 return parseError(obe.getFailure());
-            else
+            } else {
                 return Response.serverError().entity(e.getMessage()).build();
+            }
         }
     }
 

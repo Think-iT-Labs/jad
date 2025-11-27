@@ -138,9 +138,9 @@ public class DataRequestService {
                 .build();
 
         var result = transferProcessService.initiateTransfer(participantContext, request);
-        if (result.succeeded())
+        if (result.succeeded()) {
             return CompletableFuture.completedFuture(result.getContent());
-        else {
+        } else {
             return CompletableFuture.failedFuture(new EdcException("Could not start transfer process: %s".formatted(result.getFailureDetail())));
         }
     }

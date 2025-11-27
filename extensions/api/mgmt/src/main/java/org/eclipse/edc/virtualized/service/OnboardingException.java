@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.virtualized.service;
 
-import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.ServiceFailure;
 
 public class OnboardingException extends RuntimeException {

@@ -31,7 +31,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -95,15 +94,17 @@ public class ApiExtension implements ServiceExtension {
     public ControlApiUrl controlApiUrl() {
         return () -> URI.create("http://controlplane.edc-v.svc.cluster.local:%s%s".formatted(controlApiConfiguration.port(), controlApiConfiguration.path()));
     }
+
+    @Settings
+    record ControlApiConfiguration(
+            @Setting(key = "web.http." + ApiContext.CONTROL + ".port", description = "Port for " + ApiContext.CONTROL + " api context")
+            int port,
+            @Setting(key = "web.http." + ApiContext.CONTROL + ".path", description = "Path for " + ApiContext.CONTROL + " api context")
+            String path
+    ) {
+
+    }
+
 }
 
 
-@Settings
-record ControlApiConfiguration(
-        @Setting(key = "web.http." + ApiContext.CONTROL + ".port", description = "Port for " + ApiContext.CONTROL + " api context")
-        int port,
-        @Setting(key = "web.http." + ApiContext.CONTROL + ".path", description = "Path for " + ApiContext.CONTROL + " api context")
-        String path
-) {
-
-}
