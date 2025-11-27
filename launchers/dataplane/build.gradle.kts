@@ -26,7 +26,7 @@ dependencies {
     runtimeOnly(libs.edc.dataplane.v2)
 
     runtimeOnly(libs.edc.core.participantcontext.config)
-    runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(project(":extensions:vault-hashicorp"))
     runtimeOnly(libs.edc.bom.dataplane.sql)
 }
 

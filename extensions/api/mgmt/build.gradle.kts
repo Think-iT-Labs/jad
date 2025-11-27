@@ -20,7 +20,7 @@ plugins {
 
 dependencies {
     // todo: replace with SPI
-    implementation(libs.edc.vault.hashicorp)
+    implementation(project(":extensions:vault-hashicorp"))
     implementation(libs.edc.spi.participantcontext)
     implementation(libs.edc.core.jersey)
     implementation(libs.edc.core.jetty)
