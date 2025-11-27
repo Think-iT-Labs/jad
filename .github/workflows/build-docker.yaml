@@ -20,11 +20,15 @@
 name: Build and Push Launcher Images
 
 on:
-  push:
+  workflow_run:
+    workflows: [ "Verify" ]
+    types:
+      - completed
     branches: [ main ]
 
 jobs:
   build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository_owner == 'eclipse-edc' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
