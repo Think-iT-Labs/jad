@@ -1,0 +1,50 @@
+meta {
+  name: Create Asset (using new Mgmt API)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseURL}}/cp/api/mgmt/v4alpha/participants/consumer/assets
+  body: json
+  auth: oauth2
+}
+
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: http://keycloak.localhost/realms/edcv/protocol/openid-connect/token
+  refresh_token_url: 
+  client_id: consumer
+  client_secret: 1KjSm7GixsOp4PDG4fyqGNbFJKiiuisH
+  scope: management-api:write management-api:read
+  credentials_placement: basic_auth_header
+  credentials_id: 
+  token_placement: header
+  token_header_prefix: 
+  auto_fetch_token: true
+  auto_refresh_token: false
+}
+
+body:json {
+  {
+    "@context": [
+      "https://w3id.org/edc/connector/management/v0.0.1"
+    ],
+    "@id": "asset-1",
+    "@type": "Asset",
+    "properties": {
+      "description": "This asset requires Membership to view and negotiate."
+    },
+    "dataAddress": {
+      "@type": "DataAddress",
+      "type": "HttpData",
+      "baseUrl": "https://jsonplaceholder.typicode.com/todos",
+      "proxyPath": "true",
+      "proxyQueryParams": "true"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

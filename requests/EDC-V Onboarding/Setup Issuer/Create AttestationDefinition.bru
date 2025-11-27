@@ -1,0 +1,30 @@
+meta {
+  name: Create AttestationDefinition
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/issuer/admin/api/admin/v1alpha/participants/aXNzdWVy/attestations
+  body: json
+  auth: apikey
+}
+
+auth:apikey {
+  key: x-api-key
+  value: {{issuer_apiKey}}
+  placement: header
+}
+
+body:json {
+  {
+      "attestationType": "membership",
+      "configuration": {
+      },
+      "id": "membership-attestation-def-1"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

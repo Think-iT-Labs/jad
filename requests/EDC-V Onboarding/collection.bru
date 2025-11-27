@@ -1,0 +1,35 @@
+meta {
+  name: EDC-V Onboarding
+}
+
+auth {
+  mode: none
+}
+
+vars:pre-request {
+  baseURL: http://localhost
+  issuer_apiKey: 
+  issuer_clientId: issuer
+  issuer_clientSecret: issuer-secret
+  tenant_clientId: 
+  tenant_clientSecret: 
+  tenant_apiKey: 
+  POLICY_ID: 
+  KC_HOST: http://keycloak.localhost
+  VAULT_HOST: http://vault.localhost
+  participant_context_id: provider
+  participant_context_did: did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider
+  participant_context_id_base64: cHJvdmlkZXI=
+}
+
+script:post-response {
+  // Append-only: status code is any 2xx or 409, considering numeric and string descriptions
+  test("Status code is 2xx or 409", function () {
+      const code = res.getStatus(); // numeric
+  
+      const is2xx = code >= 200 && code < 300;
+      const is409 = code === 409;
+  
+      expect(is2xx || is409, `Expected 2xx or 409. Got ${code} ${res.statusText}`).to.be.true;
+  });
+}
