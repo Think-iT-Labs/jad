@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres:wal2json
+        image: ghcr.io/metaform/jad/postgres:wal2json
         ports:
         - containerPort: 5432
         env:

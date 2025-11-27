@@ -116,7 +116,7 @@ public class OnboardingService {
 
             var config = ParticipantContextConfiguration.Builder.newInstance()
                     .participantContextId(participantContextId)
-                    .entries(participantConfig)
+                    .privateEntries(participantConfig)
                     .build();
             configService.save(config)
                     .orElseThrow(OnboardingException::new);
