@@ -34,7 +34,7 @@ body:json {
       "tokenUrl": "http://identityhub.edc-v.svc.cluster.local:7084/api/sts/token",
       "clientSecret": "{{tenant_clientSecret}}",
       "clientId": "{{tenant_clientId}}",
-      "vaultConfig": {
+      "edc.vault.hashicorp.config": {
           "credentials": {
               "clientId": "{{participant_context_id}}-vault",
               "clientSecret": "{{participant_context_id}}-secret",

@@ -97,7 +97,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
                         .privateKeyAlias("%s-alias".formatted(superUserParticipantId))
                         .build())
                 .roles(List.of(ServicePrincipal.ROLE_ADMIN))
-                .additionalProperties(Map.of("vaultConfig", rootVaultConfig))
+                .additionalProperties(Map.of("edc.vault.hashicorp.config", rootVaultConfig))
                 .build();
 
         participantContextService.createParticipantContext(manifest)

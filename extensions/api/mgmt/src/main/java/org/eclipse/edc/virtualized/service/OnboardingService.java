@@ -61,7 +61,7 @@ public class OnboardingService {
     private static final String VAULT_URL = "edc.vault.hashicorp.url";
     private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
     private static final String VAULT_PATH = "edc.vault.hashicorp.api.secret.path";
-    private static final String VAULT_CONFIG = "vaultConfig";
+    private static final String VAULT_CONFIG = "edc.vault.hashicorp.config";
 
     private final TransactionContext transactionContext;
     private final ParticipantContextService participantContextStore;
