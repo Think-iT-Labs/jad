@@ -57,18 +57,36 @@ jobs:
   checkstyle:
     runs-on: ubuntu-latest
     steps:
-      - uses: hashicorp/setup-terraform@v3
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest
 
-  validate-terraform:
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: [ verify-license-headers ]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - name: Run Unit tests
+        run: ./gradlew test
+
+  postgresql-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: hashicorp/setup-terraform@v3
-      - uses: actions/checkout@v4
-      - name: Check Terraform files are properly formatted (run "terraform fmt -recursive" to fix)
+      - uses: actions/checkout@v5
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - name: Postgresql Tests
         run: |
-          terraform fmt -recursive
-          git diff --exit-code
+          ./gradlew shadowJar
+          ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
+
+  e2e-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - name: End to End Integration Tests
+        run: |
+          ./gradlew shadowJar
+          ./gradlew test -DincludeTags="EndToEndTest"
