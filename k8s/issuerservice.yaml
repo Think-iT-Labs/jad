@@ -40,6 +40,27 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef: { name: issuerservice-config }
+          livenessProbe:
+            httpGet:
+              path: /api/check/liveness
+              port: 10010
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 120
+          readinessProbe:
+            httpGet:
+              path: /api/check/readiness
+              port: 10010
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 120
+          startupProbe:
+            httpGet:
+              path: /api/check/startup
+              port: 10010
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 120
       restartPolicy: Always
 
 

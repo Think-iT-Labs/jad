@@ -106,8 +106,9 @@ public class OnboardingService {
                 CLIENT_ID, manifest.getClientId(),
                 CLIENT_SECRET_ALIAS, manifest.getClientSecretAlias(),
                 ISSUER_ID, manifest.getParticipantId(),
-                PARTICIPANT_ID, manifest.getParticipantId(),
-                VAULT_CONFIG, toJson(manifest.getVaultConfig()));
+                PARTICIPANT_ID, manifest.getParticipantId());
+
+        var sensitiveConfig = Map.of(VAULT_CONFIG, toJson(manifest.getVaultConfig()));
 
         transactionContext.execute(() -> {
 
@@ -116,7 +117,8 @@ public class OnboardingService {
 
             var config = ParticipantContextConfiguration.Builder.newInstance()
                     .participantContextId(participantContextId)
-                    .privateEntries(participantConfig)
+                    .entries(participantConfig)
+                    .privateEntries(sensitiveConfig)
                     .build();
             configService.save(config)
                     .orElseThrow(OnboardingException::new);

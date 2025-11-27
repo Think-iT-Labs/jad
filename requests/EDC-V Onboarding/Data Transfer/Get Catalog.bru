@@ -18,9 +18,9 @@ auth:oauth2 {
   client_secret: consumer-secret
   scope: management-api:read
   credentials_placement: basic_auth_header
-  credentials_id: 
+  credentials_id: credentials
   token_placement: header
-  token_header_prefix: 
+  token_header_prefix: Bearer
   auto_fetch_token: true
   auto_refresh_token: false
 }
@@ -64,4 +64,5 @@ script:post-response {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }
