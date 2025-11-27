@@ -52,7 +52,7 @@ subprojects {
             val dockerTask: DockerBuildImage = tasks.create("dockerize", DockerBuildImage::class) {
                 val dockerContextDir = project.projectDir
                 dockerFile.set(file("$dockerContextDir/src/main/docker/Dockerfile"))
-                images.add("${project.name}:${project.version}")
+                images.add("ghcr.io/metaform/jad/${project.name}:${project.version}")
 
                 //images.add("${project.name}:latest")
                 // specify platform with the -Dplatform flag:
