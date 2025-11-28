@@ -7,7 +7,6 @@ auth {
 }
 
 vars:pre-request {
-  baseURL: http://localhost
   issuer_apiKey: 
   issuer_clientId: issuer
   issuer_clientSecret: issuer-secret
@@ -15,11 +14,6 @@ vars:pre-request {
   tenant_clientSecret: 
   tenant_apiKey: 
   POLICY_ID: 
-  KC_HOST: http://keycloak.localhost
-  VAULT_HOST: http://vault.localhost
-  participant_context_id: provider
-  participant_context_did: did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider
-  participant_context_id_base64: cHJvdmlkZXI=
 }
 
 script:post-response {

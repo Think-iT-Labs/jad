@@ -12,7 +12,7 @@ post {
 
 auth:oauth2 {
   grant_type: client_credentials
-  access_token_url: http://keycloak.localhost/realms/edcv/protocol/openid-connect/token
+  access_token_url: {{KC_HOST}}/realms/edcv/protocol/openid-connect/token
   refresh_token_url: 
   client_id: admin
   client_secret: edc-v-admin-secret

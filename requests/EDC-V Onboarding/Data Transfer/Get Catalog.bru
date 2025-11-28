@@ -12,7 +12,7 @@ post {
 
 auth:oauth2 {
   grant_type: client_credentials
-  access_token_url: http://keycloak.localhost/realms/edcv/protocol/openid-connect/token
+  access_token_url: {{KC_HOST}}/realms/edcv/protocol/openid-connect/token
   refresh_token_url: 
   client_id: consumer
   client_secret: consumer-secret
@@ -27,7 +27,7 @@ auth:oauth2 {
 
 body:json {
   {
-  "counterPartyDid":"did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider"
+    "counterPartyDid": "did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider"
   }
 }
 

@@ -38,7 +38,8 @@ body:json {
           "keyId": "{{participant_context_did}}#key-1",
           "privateKeyAlias": "{{participant_context_did}}#key-1",
           "keyGeneratorParams": {
-              "algorithm": "EC"
+              "algorithm": "EDDSA",
+              "curce": "ed25519"
           }
       },
       "additionalProperties": {
