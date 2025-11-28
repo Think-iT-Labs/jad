@@ -38,7 +38,7 @@ dependencies {
     runtimeOnly(libs.edc.core.jersey)
     runtimeOnly(libs.edc.core.jetty)
     runtimeOnly(libs.edc.core.edrstore)
-    runtimeOnly(project(":extensions:vault-hashicorp"))
+    runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.edrstore.receiver)
     runtimeOnly(libs.edc.api.observability)
     runtimeOnly(libs.bundles.dcp)
@@ -50,7 +50,7 @@ dependencies {
     runtimeOnly(libs.edc.core.dataplane.signaling.client)
     runtimeOnly(libs.edc.core.dataplane.signaling.transfer)
 
-    runtimeOnly(project(":extensions:vault-hashicorp"))
+    runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.store.participantcontext.sql)
     runtimeOnly(libs.edc.store.participantcontext.config.sql)

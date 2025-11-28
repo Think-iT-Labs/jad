@@ -25,7 +25,7 @@ dependencies {
     runtimeOnly(libs.edc.bom.issuerservice)
     runtimeOnly(libs.edc.ih.api.did)
     runtimeOnly(libs.edc.ih.api.participants)
-    runtimeOnly(project(":extensions:vault-hashicorp"))
+    runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.issuerservice.sql)
     runtimeOnly(libs.edc.core.participantcontext.config)
     runtimeOnly(libs.edc.store.participantcontext.config.sql)
