@@ -29,6 +29,7 @@ spec:
       labels:
         app: postgres
         platform: edcv
+        type: edcv-infra
     spec:
       containers:
       - name: postgres
