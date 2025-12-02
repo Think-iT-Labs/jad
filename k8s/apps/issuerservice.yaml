@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: issuerservice
-          image: ghcr.io/metaform/jad/issuerservice:0.15.0-SNAPSHOT
+          image: ghcr.io/metaform/jad/issuerservice:0.16.0-SNAPSHOT
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -79,19 +79,19 @@ spec:
     - port: 10010
       targetPort: 10010
       name: web
-    - port : 10011
+    - port: 10011
       targetPort: 10011
       name: sts
-    - port : 10012
+    - port: 10012
       targetPort: 10012
       name: issuance
-    - port : 10013
+    - port: 10013
       targetPort: 10013
       name: issueradmin
-    - port : 10015
+    - port: 10015
       targetPort: 10015
       name: identity
-    - port : 10016
+    - port: 10016
       targetPort: 10016
       name: did
     - port: 9999

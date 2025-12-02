@@ -21,7 +21,6 @@ plugins {
 
 dependencies {
     implementation(libs.edc.issuance.spi) // for seeding the attestations
-    runtimeOnly(project(":extensions:seed:superuser"))
     runtimeOnly(libs.edc.bom.issuerservice)
     runtimeOnly(libs.edc.ih.api.did)
     runtimeOnly(libs.edc.ih.api.participants)

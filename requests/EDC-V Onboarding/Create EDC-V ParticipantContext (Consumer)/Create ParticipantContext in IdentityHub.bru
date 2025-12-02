@@ -7,13 +7,22 @@ meta {
 post {
   url: {{baseURL}}/cs/api/identity/v1alpha/participants
   body: json
-  auth: apikey
+  auth: oauth2
 }
 
-auth:apikey {
-  key: x-api-key
-  value: c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=
-  placement: header
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: {{KC_HOST}}/realms/edcv/protocol/openid-connect/token
+  refresh_token_url: 
+  client_id: provisioner
+  client_secret: provisioner-secret
+  scope: identity-api:read identity-api:write
+  credentials_placement: body
+  credentials_id: edcv-provisioner
+  token_placement: header
+  token_header_prefix: Bearer
+  auto_fetch_token: true
+  auto_refresh_token: false
 }
 
 body:json {

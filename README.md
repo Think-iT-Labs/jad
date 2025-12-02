@@ -70,10 +70,10 @@ following the following steps:
 
   ```shell
   kind load docker-image \
-      ghcr.io/metaform/jad/controlplane:0.15.0-SNAPSHOT \
-      ghcr.io/metaform/jad/identity-hub:0.15.0-SNAPSHOT \
-      ghcr.io/metaform/jad/issuerservice:0.15.0-SNAPSHOT \
-      ghcr.io/metaform/jad/dataplane:0.15.0-SNAPSHOT \
+      ghcr.io/metaform/jad/controlplane:0.16.0-SNAPSHOT \
+      ghcr.io/metaform/jad/identity-hub:0.16.0-SNAPSHOT \
+      ghcr.io/metaform/jad/issuerservice:0.16.0-SNAPSHOT \
+      ghcr.io/metaform/jad/dataplane:0.16.0-SNAPSHOT \
       ghcr.io/metaform/jad/postgres:wal2json -n edcv
   ```
   or if you're a bash god:
@@ -194,7 +194,8 @@ Create another environment to suit your setup:
 
 ### Update deployment manifests
 
-in [keycloak.yaml](k8s/base/keycloak.yaml) and [vault.yaml](k8s/base/vault.yaml), update the `host` fields in the `Ingress`
+in [keycloak.yaml](k8s/base/keycloak.yaml) and [vault.yaml](k8s/base/vault.yaml), update the `host` fields in the
+`Ingress`
 resources to match your DNS:
 
 ```yaml
@@ -206,6 +207,7 @@ spec:
 
 Next, in the [controlplane-config.yaml](k8s/apps/controlplane-config.yaml) change the expected issuer URL to match your
 DNS:
+
 ```yaml
 edc.iam.oauth2.issuer: "http://keycloak.localhost/realms/edcv" # change to "http://auth.yourdomain.com/realms/edcv"
 ```
@@ -217,7 +219,7 @@ clusters, these may need to be tuned to allow for longer periods and/or larger f
 particular with KeyCloak, because it takes some time to fully start up.
 
 If the thresholds are too tight, then Keycloak may get hung up in an endless restart loop—Kubernetes kills the pod
-before it reaches a healthy state. 
+before it reaches a healthy state.
 
 To start, edit the `readinessProbe` section of the `keycloak` deployment manifest:
 

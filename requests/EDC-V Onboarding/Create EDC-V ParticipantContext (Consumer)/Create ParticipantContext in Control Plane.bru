@@ -14,11 +14,11 @@ auth:oauth2 {
   grant_type: client_credentials
   access_token_url: {{KC_HOST}}/realms/edcv/protocol/openid-connect/token
   refresh_token_url: 
-  client_id: admin
-  client_secret: edc-v-admin-secret
-  scope: management-api:read management-api:write identity-api:read identity-api:write
+  client_id: provisioner
+  client_secret: provisioner-secret
+  scope: 
   credentials_placement: basic_auth_header
-  credentials_id: edcv-admin
+  credentials_id: edcv-provisioner
   token_placement: header
   token_header_prefix: Bearer
   auto_fetch_token: true
