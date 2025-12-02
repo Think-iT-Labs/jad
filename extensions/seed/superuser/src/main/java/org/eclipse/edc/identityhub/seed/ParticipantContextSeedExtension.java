@@ -15,9 +15,9 @@
 package org.eclipse.edc.identityhub.seed;
 
 import org.eclipse.edc.identityhub.spi.authentication.ServicePrincipal;
-import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
@@ -86,7 +86,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
                     }
                 }
                 """.formatted(secretPath, url, token);
-        
+
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantContextId(superUserParticipantId)
                 .did("did:web:%s".formatted(superUserParticipantId)) // doesn't matter, not intended for resolution
