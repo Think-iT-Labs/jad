@@ -1,0 +1,112 @@
+#
+#  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft
+#
+#  See the NOTICE file(s) distributed with this work for additional
+#  information regarding copyright ownership.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#  https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#  License for the specific language governing permissions and limitations
+#  under the License.
+#
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+---
+name: "Run E2E Tests"
+
+on:
+  push:
+  pull_request:
+
+  workflow_run:
+    workflows: [ "Draft Release" ]
+    types:
+      - completed
+
+  schedule:
+    - cron: '0 3 * * *'  # Run at 3am UTC every day
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  E2E-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+
+      - name: "Setup Kubectl"
+        uses: azure/setup-kubectl@v4
+
+      - name: "Build runtime images"
+        run: |
+          ./gradlew dockerize
+          docker buildx build -f launchers/postgres/Dockerfile -t ghcr.io/metaform/jad/postgres:wal2json launchers/postgres
+
+      - name: "Create k8s Kind Cluster"
+        uses: helm/kind-action@v1.12.0
+        with:
+          config: kind.config.yaml
+          cluster_name: jad
+
+      - name: "Load runtime images into KinD"
+        run: |
+          kind load docker-image -n jad ghcr.io/metaform/jad/postgres:wal2json \
+                                ghcr.io/metaform/jad/controlplane:latest \
+                                ghcr.io/metaform/jad/dataplane:latest \
+                                ghcr.io/metaform/jad/identity-hub:latest \
+                                ghcr.io/metaform/jad/issuerservice:latest \
+                                
+
+      - name: "Install nginx ingress controller"
+        run: |-
+          kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
+          kubectl wait --namespace ingress-nginx \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller \
+            --timeout=90s
+
+      - name: "Deploy JAD infrastructure"
+        run: |
+          # deploying the infrastructure first, wait for it to finish and deploying the applications afterwards is 
+          # the safest way to avoid race conditions between apps and infra, e.g. vault.
+          
+          kubectl apply -f k8s/base
+          kubectl wait --for=condition=Ready pods --all -n edc-v --timeout=90s
+
+      - name: "Deploy JAD applications"
+        run: |-
+          # this is crucial - without it, KinD would take the prebuilt images from GHCR
+          grep -rlZ "imagePullPolicy:.*Always" . | xargs sed -i "s/imagePullPolicy:.*Always/imagePullPolicy: Never/g"
+          
+          kubectl apply -f k8s/apps
+          kubectl wait --namespace edc-v \
+            --for=condition=ready pod \
+            --selector=type=edcv-app \
+            --timeout=90s
+          
+      - name: "Run E2E Test"
+        run: |
+          ./gradlew test -DincludeTags="EndToEndTest"
+
+      - name: "Print log if test failed"
+        if: failure()
+        run: |-
+          kubectl logs deployment/controlplane -n edc-v
+          kubectl logs deployment/dataplane -n edc-v
+
+      - name: "Destroy the KinD cluster"
+        run: >-
+          kind delete cluster -n jad

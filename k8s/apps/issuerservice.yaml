@@ -11,134 +11,143 @@
 #      Metaform Systems, Inc. - initial API and implementation
 #
 
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: identityhub
+  name: issuerservice
   namespace: edc-v
   labels:
-    app: identityhub
+    app: issuerservice
     type: edcv-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: identityhub
+      app: issuerservice
   template:
     metadata:
+      name: issuerservice
       labels:
-        app: identityhub
+        app: issuerservice
         platform: edcv
+        type: edcv-app
     spec:
       containers:
-        - name: identityhub
-          image: ghcr.io/metaform/jad/identity-hub:0.15.0-SNAPSHOT
+        - name: issuerservice
+          image: ghcr.io/metaform/jad/issuerservice:0.15.0-SNAPSHOT
           imagePullPolicy: Always
-          envFrom:
-            - configMapRef:
-                name: ih-config
           ports:
-            - containerPort: 7082
-              name: creds-port
-            - containerPort: 1044
-              name: debug
-            - containerPort: 7081
-              name: identity-api
-            - containerPort: 7083
-              name: did
-            - containerPort: 7080
-              name: web
-
+            - containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef: { name: issuerservice-config }
           livenessProbe:
             httpGet:
               path: /api/check/liveness
-              port: 7080
+              port: 10010
             failureThreshold: 10
             periodSeconds: 5
             timeoutSeconds: 120
           readinessProbe:
             httpGet:
               path: /api/check/readiness
-              port: 7080
+              port: 10010
             failureThreshold: 10
             periodSeconds: 5
             timeoutSeconds: 120
           startupProbe:
             httpGet:
               path: /api/check/startup
-              port: 7080
+              port: 10010
             failureThreshold: 10
             periodSeconds: 5
             timeoutSeconds: 120
+      restartPolicy: Always
+
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: identityhub
+  name: issuerservice
   namespace: edc-v
 spec:
   type: NodePort
   selector:
-    app: identityhub
+    app: issuerservice
   ports:
-    - port: 7082
-      targetPort: 7082
-      name: creds-port
-    - port: 1044
-      targetPort: 1044
-      name: debug
-    - port: 7081
-      targetPort: 7081
-      name: identity-api
-    - port: 7083
-      targetPort: 7083
-      name: did
-    - port: 7084
-      targetPort: 7084
+    - port: 10010
+      targetPort: 10010
+      name: web
+    - port : 10011
+      targetPort: 10011
       name: sts
+    - port : 10012
+      targetPort: 10012
+      name: issuance
+    - port : 10013
+      targetPort: 10013
+      name: issueradmin
+    - port : 10015
+      targetPort: 10015
+      name: identity
+    - port : 10016
+      targetPort: 10016
+      name: did
+    - port: 9999
+      targetPort: 9999
+      name: statuslist
+
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: identityhub
+  name: issuerservice
   namespace: edc-v
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
     nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
-          - path: /cs(/|$)(.*)
+          - path: /issuer/cs(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
-                name: identityhub
+                name: issuerservice
                 port:
-                  number: 7081
+                  number: 10015
+
+          - path: /issuer/admin(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: issuerservice
+                port:
+                  number: 10013
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: identityhub-did
+  name: issuer-did
   namespace: edc-v
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+    nginx.ingress.kubernetes.io/rewrite-target: "/issuer/$2"
 
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
-          - path: /(/|&)(.*)
+          - path: /issuer(/|&)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
-                name: identityhub
+                name: issuerservice
                 port:
-                  number: 7083
+                  number: 10016
