@@ -157,8 +157,17 @@ data:
           }
         },
         {
-          "name": "issuer-admin-api",
-          "description": "full access to the Issuer Admin API",
+          "name": "issuer-admin-api:read",
+          "description": "read access to the Issuer Admin API",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "true"
+          }
+        },
+        {
+          "name": "issuer-admin-api:write",
+          "description": "write access to the Issuer Admin API",
           "protocol": "openid-connect",
           "attributes": {
             "include.in.token.scope": "true",
@@ -171,7 +180,9 @@ data:
         "management-api:read",
         "management-api:write",
         "identity-api:read",
-        "identity-api:write"
+        "identity-api:write",
+        "issuer-admin-api:read",
+        "issuer-admin-api:write"
       ],
       "clients": [
         {
@@ -232,7 +243,8 @@ data:
             }
           ],
           "defaultClientScopes": [
-            "issuer-admin-api",
+            "issuer-admin-api:write",
+            "issuer-admin-api:read",
             "identity-api:write",
             "identity-api:read",
             "management-api:write",
