@@ -14,11 +14,8 @@
 
 package org.eclipse.edc.virtualized;
 
-import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
@@ -65,12 +62,6 @@ public class ApiExtension implements ServiceExtension {
     @Inject
     private DataPlaneSelectorService selectorService;
     @Inject
-    private AssetService assetService;
-    @Inject
-    private PolicyDefinitionService policyService;
-    @Inject
-    private ContractDefinitionService contractDefinitionService;
-    @Inject
     private TransactionContext transactionContext;
     @Inject
     private ContractNegotiationService contractNegotiationService;
@@ -83,7 +74,7 @@ public class ApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var onboardingService = new OnboardingService(transactionContext, service, configService, vault, selectorService, assetService, policyService, contractDefinitionService, url);
+        var onboardingService = new OnboardingService(transactionContext, service, configService, vault, selectorService, url);
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiController(onboardingService));
         var dataRequestService = new DataRequestService(contractNegotiationService, transferProcessService, didResolverRegistry, edrStore);
         webService.registerResource(ApiContext.MANAGEMENT, new DataApiController(catalogService, didResolverRegistry, participantContextService, dataRequestService));

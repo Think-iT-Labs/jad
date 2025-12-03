@@ -1,0 +1,45 @@
+meta {
+  name: Update CEL expression
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseURL}}/cp/api/mgmt/v4alpha/celexpressions/{{CEL_EXPR_ID}}
+  body: json
+  auth: oauth2
+}
+
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: {{KC_HOST}}/realms/edcv/protocol/openid-connect/token
+  refresh_token_url: 
+  client_id: provisioner
+  client_secret: provisioner-secret
+  scope: 
+  credentials_placement: basic_auth_header
+  credentials_id: edcv-provisioner
+  token_placement: header
+  token_header_prefix: Bearer
+  auto_fetch_token: true
+  auto_refresh_token: false
+}
+
+body:json {
+  {
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      "https://w3id.org/edc/virtual-connector/management/v2"
+    ],
+    "@type": "CelExpression",
+    "@id": "{{CEL_EXPR_ID}}",
+    "leftOperand": "MembershipCredential",
+    "description": "Expression for evaluating membership credential",
+    "expression": "ctx.agent.claims.vc.filter(c, c.type.exists(t, t == 'MembershipCredential')).exists(c, c.credentialSubject.exists(cs, timestamp(cs.membershipStartDate) < now))"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

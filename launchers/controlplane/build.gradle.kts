@@ -31,6 +31,7 @@ dependencies {
     runtimeOnly(libs.edcv.nats.subscriber.tp)
     runtimeOnly(libs.edcv.nats.subscriber.cn)
     runtimeOnly(libs.edcv.cel.extension)
+    runtimeOnly(libs.edcv.cel.store.sql)
 
     runtimeOnly(libs.edc.core.connector)
     runtimeOnly(libs.edc.core.runtime)

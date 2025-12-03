@@ -134,6 +134,26 @@ This sets up accounts in the IssuerService, the IdentityHub and the ControlPlane
 `MembershipCredential` to each new participant. It also seeds dummy data to each participant, specifically an Asset, a
 Policy and a ContractDefinition.
 
+## Seeding EDC-V CEL Expressions
+
+For evaluating policies EDC-V makes usage of the CEL (Common Expression Language) engine. To demonstrate this, we
+will create a simple CEL expression that allows data access only to participants that possess a valid Membership
+Credential.
+
+Run the requests in the `Create CEL expression` request in folder `EDC-V Management` in the same Bruno collection
+to create the CEL expression in the ControlPlane.
+
+![img.png](docs/images/bruno_cel_expr.png)
+
+## Seeding the Provider
+
+Before we can transfer data, we need to seed the Provider with an asset, a policy and a contract definition. This is
+done by running the requests in the `EDC-V Management (Provider)` folder in the same Bruno collection. Again, make sure
+to select the
+`"KinD Local"` environment.
+
+![img.png](docs/images/bruno_provider_seed.png)
+
 ## Transfer Data
 
 EDC-V offers a one-stop-shop API to transfer data. This is achieved by two endpoints, one that fetches the catalog (
@@ -225,22 +245,22 @@ To start, edit the `readinessProbe` section of the `keycloak` deployment manifes
 
 ```yaml
 # keycloak.yaml, Line 79ff
-   readinessProbe:
-     httpGet:
-       path: /health/ready
-       port: 9000
-     initialDelaySeconds: 30 # changed
-     periodSeconds: 10 # changed
-     successThreshold: 1
-     failureThreshold: 15 # changed
-   livenessProbe:
-     httpGet:
-       path: /health/live
-       port: 9000
-     initialDelaySeconds: 30 # changed
-     periodSeconds: 10 # changed
-     successThreshold: 1
-     failureThreshold: 15 # changed
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 9000
+  initialDelaySeconds: 30 # changed
+  periodSeconds: 10 # changed
+  successThreshold: 1
+  failureThreshold: 15 # changed
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 9000
+  initialDelaySeconds: 30 # changed
+  periodSeconds: 10 # changed
+  successThreshold: 1
+  failureThreshold: 15 # changed
 ```
 
 

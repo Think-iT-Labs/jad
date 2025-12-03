@@ -1,0 +1,56 @@
+meta {
+  name: Create Policy
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseURL}}/cp/api/mgmt/v4alpha/participants/provider/policydefinitions
+  body: json
+  auth: oauth2
+}
+
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: {{KC_HOST}}/realms/edcv/protocol/openid-connect/token
+  refresh_token_url: 
+  client_id: provider
+  client_secret: provider-secret
+  scope: management-api:write
+  credentials_placement: basic_auth_header
+  credentials_id: credentials
+  token_placement: header
+  token_header_prefix: Bearer
+  auto_fetch_token: true
+  auto_refresh_token: false
+}
+
+body:json {
+  {
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ],
+    "@type": "PolicyDefinition",
+    "@id": "{{POLICY_DEF_ID}}",
+    "policy": {
+      "@type": "Set",
+      "permission": [
+        {
+          "action": "use",
+          "constraint" : [
+            {
+              "leftOperand": "MembershipCredential",
+              "operator": "eq",
+              "rightOperand": "active"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
