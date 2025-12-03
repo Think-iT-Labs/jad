@@ -87,13 +87,32 @@ following the following steps:
 ### 2. Deploy the services
 
 JAD uses plain Kubernetes manifests to deploy the services and Kustomize to configure the order. All the manifests are
-located in the [deployment](./deployment) folder.
+located in the [k8s](./k8s) folder. While it is possible to just use the Kustomize plugin and running
+`kubectl apply -k k8s/`, you may experience nasty race conditions because some services depend on others to be fully
+operational before they can start properly.
+
+The recommended way is to deploy infrastructure services first, and application services second. This can be done
+by running:
 
 ```shell
-kubectl apply -k k8s/
+kubectl apply -f k8s/base/
+
+# Wait for the infrastructure services to be ready:
+kubectl wait --namespace edc-v \
+            --for=condition=ready pod \
+            --selector=type=edcv-infra \
+            --timeout=90s
+            
+kubectl apply -k k8s/apps/
+
+# Wait for applications to be ready:
+kubectl wait --namespace edc-v \
+            --for=condition=ready pod \
+            --selector=type=edcv-app \
+            --timeout=90s
 ```
 
-This deploys all the services in the correct order. The services are deployed in the `edcv` namespace. Please verify
+This deploys all the services in the correct order. The services are deployed in the `edc-v` namespace. Please verify
 that everything got deployed correctly by running `kubectl get deployments -n edcv`. This should output something like:
 
 ```text
@@ -111,9 +130,11 @@ vault           1/1     1            1           66m
 ### 3. Inspect your deployment
 
 - database: the PostgreSQL database is accessible from outside the cluster via
-  `jdbc:postgresql://postgres.localhost/controlplane`, username `postgres`, password ``.
+  `jdbc:postgresql://postgres.localhost/controlplane`, username `cp`, password `cp`.
 - vault: the vault is accessible from outside the cluster via `http://vault.localhost`, using token `root`.
 - keycloak: access `http://keycloak.localhost/` and use username `admin` and password `admin`
+
+**Caution: these are security-relevant credentials and must not be used in production! EVER!!**
 
 ### 4. Prepare the data space
 
@@ -127,8 +148,8 @@ Those requests can be run manually, one after the other, or via Bruno's "Run" fe
 refresh the access token in the `"Auth*"` tab.
 
 Next, we need to create a consumer and a provider participant. For this, we can also use Bruno, using the
-`"Create EDC-V ParticipantContext (Consumer/Provider)"`
-folder in the same collection. Again, make sure to select the `"KinD Local"` environment.
+`"Create EDC-V ParticipantContext [Consumer|Provider]` folders in the same collection. Again, make sure to select the
+`"KinD Local"` environment.
 
 This sets up accounts in the IssuerService, the IdentityHub and the ControlPlane, plus it issues the
 `MembershipCredential` to each new participant. It also seeds dummy data to each participant, specifically an Asset, a
@@ -166,6 +187,19 @@ from https://jsonplaceholder.typicode.com/todos, something like:
 ]
 ```
 
+## Automated tests
+
+JAD comes with a set of automated tests that can be run against the deployed services. These tests are located in the
+[tests/end2end](./tests/end2end) folder. To run them, deploy JAD without creating any resources, and then run the test
+suite:
+
+```shell
+./gradlew test -DincludeTags="EndToEndTest"
+```
+
+This may be particularly useful if you want to tinker with the code base, add or change stuff and would like to see if
+everything still works. Remember to rebuild and reload the docker images, though...
+
 ## Cleanup
 
 To remove the deployment, run:
@@ -176,18 +210,25 @@ kubectl delete -k k8s/
 
 ## Deploying JAD on a bare-metal/cloud-hosted Kubernetes
 
-KinD is geared towards local development and testing. If you want to deploy JAD on a bare-metal or cloud-hosted
-Kubernetes cluster, there are some caveats to keep in mind.
+KinD is geared towards local development and testing. For example, it comes with a bunch of useful defaults, such as
+storage classes, load balancers, network plugins, etc. If you want to deploy JAD on a bare-metal or cloud-hosted
+Kubernetes cluster, then there are some caveats to keep in mind.
 
-### Configure DNS
+### Configure network access and DNS
 
-EDC-V, Keycloak and Vault will need to be accessible from outside the cluster. This can be done by configuring DNS
-entries for the services, e.g. `http://auth.yourdomain.com/`, `http://vault.yourdomain.com/` etc. This will depend on
-your DNS provider. All entries should point to the IP address of the Kubernetes host.
+EDC-V, Keycloak and Vault will need to be accessible from outside the cluster. For this, your cluster needs a network
+plugin and an external load balancer. For bare-metal installations, consider using [MetalLB](https://metallb.io).
+
+In addition, you likely want DNS resolution for your cluster so that individual services can be reached via
+subdomains, e.g. `http://auth.yourdomain.com/`, `http://vault.yourdomain.com/` etc.
+This must be configured with your DNS provider, and the specifics will vary greatly from one to the next. All entries
+should point to the IP address of the Kubernetes host, for example:
+
+![img.png](docs/images/dns.png)
 
 ### Create Bruno Environment
 
-Some of the URL paths used in Bruno are hard coded to `localhost` and compartmentalized in a Bruno environment.
+Some of the URL paths used in Bruno are hard coded to `localhost` in a Bruno environment.
 Create another environment to suit your setup:
 
 ![img.png](docs/images/bruno_custom_env.png)
@@ -218,29 +259,29 @@ Readiness probes are set up fairly tight to avoid long wait times on local KinD 
 clusters, these may need to be tuned to allow for longer periods and/or larger failure thresholds. We've seen this in
 particular with KeyCloak, because it takes some time to fully start up.
 
-If the thresholds are too tight, then Keycloak may get hung up in an endless restart loop—Kubernetes kills the pod
+If the thresholds are too tight, then Keycloak may get hung up in endless restart loops: Kubernetes kills the pod
 before it reaches a healthy state.
 
 To start, edit the `readinessProbe` section of the `keycloak` deployment manifest:
 
 ```yaml
 # keycloak.yaml, Line 79ff
-   readinessProbe:
-     httpGet:
-       path: /health/ready
-       port: 9000
-     initialDelaySeconds: 30 # changed
-     periodSeconds: 10 # changed
-     successThreshold: 1
-     failureThreshold: 15 # changed
-   livenessProbe:
-     httpGet:
-       path: /health/live
-       port: 9000
-     initialDelaySeconds: 30 # changed
-     periodSeconds: 10 # changed
-     successThreshold: 1
-     failureThreshold: 15 # changed
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 9000
+  initialDelaySeconds: 30 # changed
+  periodSeconds: 10 # changed
+  successThreshold: 1
+  failureThreshold: 15 # changed
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 9000
+  initialDelaySeconds: 30 # changed
+  periodSeconds: 10 # changed
+  successThreshold: 1
+  failureThreshold: 15 # changed
 ```
 
 
