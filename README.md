@@ -70,10 +70,10 @@ following the following steps:
 
   ```shell
   kind load docker-image \
-      ghcr.io/metaform/jad/controlplane:0.16.0-SNAPSHOT \
-      ghcr.io/metaform/jad/identity-hub:0.16.0-SNAPSHOT \
-      ghcr.io/metaform/jad/issuerservice:0.16.0-SNAPSHOT \
-      ghcr.io/metaform/jad/dataplane:0.16.0-SNAPSHOT \
+      ghcr.io/metaform/jad/controlplane:latest \
+      ghcr.io/metaform/jad/identity-hub:latest \
+      ghcr.io/metaform/jad/issuerservice:latest \
+      ghcr.io/metaform/jad/dataplane:latest \
       ghcr.io/metaform/jad/postgres:wal2json -n edcv
   ```
   or if you're a bash god:
