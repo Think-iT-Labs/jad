@@ -27,6 +27,7 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakAdminToken;
+import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakToken;
 import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakUser;
 import static org.eclipse.edc.jad.tests.KeycloakApi.getAccessToken;
 
@@ -43,7 +44,6 @@ public class DataTransferTest {
     public static final String ISSUER_CLIENT_SECRET = "issuer-secret";
 
     static final String BASE_URL = "http://127.0.0.1";
-    static final String API_ADMIN_KEY = "c3VwZXItdXNlcg==.c3VwZXItc2VjcmV0LWtleQo=";
 
     static String loadResourceFile(String resourceName) {
         try (var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName)) {
@@ -64,20 +64,24 @@ public class DataTransferTest {
         //create issuer user in KC
         monitor.withPrefix("Issuer").info("Creating issuer user in Keycloak");
         createKeycloakUser(ISSUER_CLIENT_ID, ISSUER_CLIENT_ID, ISSUER_CLIENT_SECRET, "participant", kcAdminToken);
-        var issuerTenant = createIssuerTenant();
+
+        var provisionerToken = createKeycloakToken("provisioner", "provisioner-secret", "issuer-admin-api:write", "identity-api:write", "management-api:write", "identity-api:read");
+        createIssuerTenant(provisionerToken);
         var participantIdBase64 = Base64.getEncoder().encodeToString(ISSUER_CLIENT_ID.getBytes());
         monitor.withPrefix("Issuer").info("Creating attestation and credential definitions");
-        var attestationDefId = createAttestationDefinition(participantIdBase64, issuerTenant.apiKey());
-        var credentialDefId = createCredentialDefId(attestationDefId, participantIdBase64, issuerTenant.apiKey());
+
+        var tenantToken = createKeycloakToken(ISSUER_CLIENT_ID, ISSUER_CLIENT_SECRET, "issuer-admin-api:write", "identity-api:write");
+        var attestationDefId = createAttestationDefinition(participantIdBase64, tenantToken);
+        var credentialDefId = createCredentialDefId(attestationDefId, participantIdBase64, tenantToken);
 
         // onboard consumer
         monitor.info("Onboarding consumer");
-        var po = new ParticipantOnboarding("consumer", "did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer", ISSUER_CLIENT_ID, issuerTenant.apiKey(), monitor.withPrefix("Consumer"));
+        var po = new ParticipantOnboarding("consumer", "did:web:identityhub.edc-v.svc.cluster.local%3A7083:consumer", ISSUER_CLIENT_ID, provisionerToken, monitor.withPrefix("Consumer"));
         po.execute(credentialDefId);
 
         // onboard provider
         monitor.info("Onboarding provider");
-        var providerPo = new ParticipantOnboarding("provider", "did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider", ISSUER_CLIENT_ID, issuerTenant.apiKey(), monitor.withPrefix("Provider"));
+        var providerPo = new ParticipantOnboarding("provider", "did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider", ISSUER_CLIENT_ID, provisionerToken, monitor.withPrefix("Provider"));
         providerPo.execute(credentialDefId);
 
         // perform data transfer
@@ -120,7 +124,7 @@ public class DataTransferTest {
         assertThat(jsonResponse).isNotNull();
     }
 
-    private String createCredentialDefId(String attestationDefId, String participantIdBase64, String apiKey) {
+    private String createCredentialDefId(String attestationDefId, String participantIdBase64, String accessToken) {
         var template = loadResourceFile("membership_def.json");
 
         var id = UUID.randomUUID().toString();
@@ -129,7 +133,7 @@ public class DataTransferTest {
 
         given()
                 .baseUri(BASE_URL)
-                .header("x-api-key", apiKey)
+                .auth().oauth2(accessToken)
                 .contentType("application/json")
                 .body(template)
                 .post("/issuer/admin/api/admin/v1alpha/participants/%s/credentialdefinitions".formatted(participantIdBase64))
@@ -139,7 +143,7 @@ public class DataTransferTest {
         return id;
     }
 
-    private String createAttestationDefinition(String participantIdBase64, String apiKey) {
+    private String createAttestationDefinition(String participantIdBase64, String accessToken) {
         var id = UUID.randomUUID().toString();
         var body = """
                 {
@@ -150,7 +154,7 @@ public class DataTransferTest {
                 """.formatted(id);
         given()
                 .baseUri(BASE_URL)
-                .header("x-api-key", apiKey)
+                .auth().oauth2(accessToken)
                 .contentType("application/json")
                 .body(body)
                 .post("/issuer/admin/api/admin/v1alpha/participants/%s/attestations".formatted(participantIdBase64))
@@ -160,7 +164,7 @@ public class DataTransferTest {
         return id;
     }
 
-    private CreateParticipantContextResponse createIssuerTenant() {
+    private CreateParticipantContextResponse createIssuerTenant(String accessToken) {
         var template = loadResourceFile("create_participant_issuerservice.json");
 
         template = template.replace("{{issuer_clientId}}", ISSUER_CLIENT_ID);
@@ -168,7 +172,7 @@ public class DataTransferTest {
 
         return given()
                 .baseUri(BASE_URL)
-                .header("x-api-key", API_ADMIN_KEY)
+                .auth().oauth2(accessToken)
                 .contentType("application/json")
                 .body(template)
                 .post("/issuer/cs/api/identity/v1alpha/participants")

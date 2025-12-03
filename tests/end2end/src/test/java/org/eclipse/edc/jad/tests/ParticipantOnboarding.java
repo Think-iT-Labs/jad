@@ -24,7 +24,6 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.jad.tests.DataTransferTest.API_ADMIN_KEY;
 import static org.eclipse.edc.jad.tests.DataTransferTest.BASE_URL;
 import static org.eclipse.edc.jad.tests.DataTransferTest.loadResourceFile;
 import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakAdminToken;
@@ -32,7 +31,7 @@ import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakUser;
 import static org.eclipse.edc.jad.tests.KeycloakApi.getAccessToken;
 
 public record ParticipantOnboarding(String participantContextId, String participantContextDid, String issuerId,
-                                    String issuerApiKey, Monitor monitor) {
+                                    String accessToken, Monitor monitor) {
 
     public String participantContextIdBase64() {
         return Base64.getEncoder().encodeToString(participantContextId.getBytes());
@@ -54,20 +53,21 @@ public record ParticipantOnboarding(String participantContextId, String particip
         createParticipantInControlPlane(ihPc);
 
         monitor.info("Create credential request");
-        var holderPid = createCredentialRequest(ihPc.apiKey(), credentialDefinitionId);
+        var userToken = KeycloakApi.createKeycloakToken(participantContextId, participantContextId + "-secret", "identity-api:write", "identity-api:read");
+        var holderPid = createCredentialRequest(userToken, credentialDefinitionId);
 
         monitor.info("Wait for credential issuance");
-        waitForCredentialIssuance(ihPc.apiKey(), holderPid);
+        waitForCredentialIssuance(userToken, holderPid);
         monitor.info("Credential issued successfully");
     }
 
-    private void waitForCredentialIssuance(String apiKey, String holderPid) {
+    private void waitForCredentialIssuance(String userToken, String holderPid) {
         await().atMost(20, SECONDS)
                 .pollInterval(1, SECONDS).until(() -> {
                     var response = given()
                             .baseUri(BASE_URL)
                             .contentType("application/json")
-                            .header("x-api-key", apiKey)
+                            .auth().oauth2(userToken)
                             .get("/cs/api/identity/v1alpha/participants/%s/credentials/request/%s".formatted(participantContextIdBase64(), holderPid))
                             .then()
                             .log().ifValidationFails()
@@ -79,12 +79,12 @@ public record ParticipantOnboarding(String participantContextId, String particip
                 });
     }
 
-    private String createCredentialRequest(String apiKey, String credentialDefinitionId) {
+    private String createCredentialRequest(String userToken, String credentialDefinitionId) {
         var holderPid = UUID.randomUUID().toString();
         given()
                 .baseUri(BASE_URL)
                 .contentType("application/json")
-                .header("x-api-key", apiKey)
+                .auth().oauth2(userToken)
                 .body("""
                         {
                             "issuerDid": "did:web:issuerservice.edc-v.svc.cluster.local%%3A10016:issuer",
@@ -138,7 +138,7 @@ public record ParticipantOnboarding(String participantContextId, String particip
         return given()
                 .baseUri(BASE_URL)
                 .contentType("application/json")
-                .header("x-api-key", API_ADMIN_KEY)
+                .auth().oauth2(accessToken)
                 .body(requestBody)
                 .post("/cs/api/identity/v1alpha/participants")
                 .then()
@@ -152,7 +152,7 @@ public record ParticipantOnboarding(String participantContextId, String particip
         given()
                 .baseUri(BASE_URL)
                 .contentType("application/json")
-                .header("x-api-key", issuerApiKey)
+                .auth().oauth2(accessToken)
                 .body("""
                         {
                              "did": "%s",

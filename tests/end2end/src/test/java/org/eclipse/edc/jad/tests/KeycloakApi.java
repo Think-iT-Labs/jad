@@ -26,7 +26,7 @@ public class KeycloakApi {
     private static final String KEYCLOAK_ADMIN_USER = "admin";
     private static final String KEYCLOAK_ADMIN_PASSWORD = "admin";
 
-    static void createKeycloakUser(String name,  String clientId, String secret, String role, String token) {
+    static void createKeycloakUser(String name, String clientId, String secret, String role, String token) {
         var template = loadResourceFile("create_keycloak_user.json");
         template = template
                 .replace("{{issuer_name}}", name)
@@ -44,6 +44,10 @@ public class KeycloakApi {
                 .log().ifError()
                 .statusCode(anyOf(equalTo(201), equalTo(409)));
 
+    }
+
+    static String createKeycloakToken(String clientId, String clientSecret, String... scopes) {
+        return getAccessToken(clientId, clientSecret, String.join(" ", scopes)).accessToken();
     }
 
     static String createKeycloakAdminToken() {
