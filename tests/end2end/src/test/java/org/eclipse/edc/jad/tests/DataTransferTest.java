@@ -30,6 +30,7 @@ import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakAdminToken;
 import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakToken;
 import static org.eclipse.edc.jad.tests.KeycloakApi.createKeycloakUser;
 import static org.eclipse.edc.jad.tests.KeycloakApi.getAccessToken;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 
 /**
  * This test class executes a series of REST requests against several components to verify that an end-to-end
@@ -67,6 +68,7 @@ public class DataTransferTest {
 
         var provisionerToken = createKeycloakToken("provisioner", "provisioner-secret", "issuer-admin-api:write", "identity-api:write", "management-api:write", "identity-api:read");
         createIssuerTenant(provisionerToken);
+        createCelExpression(provisionerToken);
         var participantIdBase64 = Base64.getEncoder().encodeToString(ISSUER_CLIENT_ID.getBytes());
         monitor.withPrefix("Issuer").info("Creating attestation and credential definitions");
 
@@ -83,6 +85,14 @@ public class DataTransferTest {
         monitor.info("Onboarding provider");
         var providerPo = new ParticipantOnboarding("provider", "did:web:identityhub.edc-v.svc.cluster.local%3A7083:provider", ISSUER_CLIENT_ID, provisionerToken, monitor.withPrefix("Provider"));
         providerPo.execute(credentialDefId);
+
+        // seed provider
+        monitor.info("Seeding provider");
+        var providerAccesstoken = getAccessToken("provider", "provider-secret", "management-api:write");
+
+        var assetId = createAsset(providerAccesstoken.accessToken());
+        var policyDefId = createPolicyDef(providerAccesstoken.accessToken());
+        createContractDef(providerAccesstoken.accessToken(), policyDefId, assetId);
 
         // perform data transfer
         monitor.info("Starting data transfer");
@@ -180,5 +190,61 @@ public class DataTransferTest {
                 .statusCode(200)
                 .extract()
                 .body().as(CreateParticipantContextResponse.class);
+    }
+
+    private void createCelExpression(String accessToken) {
+        var template = loadResourceFile("create_cel_expression.json");
+
+        given()
+                .baseUri(BASE_URL)
+                .auth().oauth2(accessToken)
+                .contentType("application/json")
+                .body(template)
+                .post("/cp/api/mgmt/v4alpha/celexpressions")
+                .then()
+                .statusCode(200);
+    }
+
+    private String createAsset(String accessToken) {
+        var template = loadResourceFile("asset.json");
+        return given()
+                .baseUri(BASE_URL)
+                .auth().oauth2(accessToken)
+                .contentType("application/json")
+                .body(template)
+                .post("/cp/api/mgmt/v4alpha/participants/provider/assets")
+                .then()
+                .statusCode(200)
+                .extract().jsonPath().getString(ID);
+    }
+
+    private String createPolicyDef(String accessToken) {
+        var template = loadResourceFile("policy-def.json");
+        return given()
+                .baseUri(BASE_URL)
+                .auth().oauth2(accessToken)
+                .contentType("application/json")
+                .body(template)
+                .post("/cp/api/mgmt/v4alpha/participants/provider/policydefinitions")
+                .then()
+                .statusCode(200)
+                .extract().jsonPath().getString(ID);
+    }
+
+    private String createContractDef(String accessToken, String policyDefId, String assetId) {
+        var template = loadResourceFile("contract-def.json");
+
+        template = template.replace("{{policy_def_id}}", policyDefId);
+        template = template.replace("{{asset_id}}", assetId);
+
+        return given()
+                .baseUri(BASE_URL)
+                .auth().oauth2(accessToken)
+                .contentType("application/json")
+                .body(template)
+                .post("/cp/api/mgmt/v4alpha/participants/provider/contractdefinitions")
+                .then()
+                .statusCode(200)
+                .extract().jsonPath().getString(ID);
     }
 }

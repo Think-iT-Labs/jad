@@ -16,12 +16,6 @@ package org.eclipse.edc.virtualized.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
-import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
-import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
@@ -30,17 +24,12 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.api.management.ParticipantManifest;
 
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * This service is a quick-n-dirty onboarding agent, that performs all necessary tasks required to onboard a new participant into the control plane:
@@ -68,9 +57,6 @@ public class OnboardingService {
     private final ParticipantContextConfigService configService;
     private final Vault vault;
     private final DataPlaneSelectorService dataPlaneSelectorService;
-    private final AssetService assetService;
-    private final PolicyDefinitionService policyService;
-    private final ContractDefinitionService contractDefinitionService;
     private final String defaultVaultUrl;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -78,18 +64,12 @@ public class OnboardingService {
                              ParticipantContextConfigService configService,
                              Vault vault,
                              DataPlaneSelectorService dataPlaneSelectorService,
-                             AssetService assetService,
-                             PolicyDefinitionService policyService,
-                             ContractDefinitionService contractDefinitionService,
                              String defaultVaultUrl) {
         this.transactionContext = transactionContext;
         this.participantContextStore = participantContextStore;
         this.configService = configService;
         this.vault = vault;
         this.dataPlaneSelectorService = dataPlaneSelectorService;
-        this.assetService = assetService;
-        this.policyService = policyService;
-        this.contractDefinitionService = contractDefinitionService;
         this.defaultVaultUrl = defaultVaultUrl;
     }
 
@@ -134,12 +114,6 @@ public class OnboardingService {
                             .build())
                     .orElseThrow(OnboardingException::new);
 
-
-            var assetId = UUID.randomUUID().toString();
-            createAssets(assetId, participantContextId)
-                    .compose(a -> createPolicies(participantContextId))
-                    .compose(p -> createContractDefinitions(assetId, p.getId(), participantContextId))
-                    .orElseThrow(OnboardingException::new);
         });
 
     }
@@ -150,42 +124,5 @@ public class OnboardingService {
         } catch (JsonProcessingException e) {
             throw new EdcException(e);
         }
-    }
-
-    private ServiceResult<PolicyDefinition> createPolicies(String participantContextId) {
-        var policy = PolicyDefinition.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .participantContextId(participantContextId)
-                .policy(Data.MEMBERSHIP_POLICY)
-                .build();
-
-        return policyService.create(policy);
-    }
-
-    private ServiceResult<ContractDefinition> createContractDefinitions(String assetId, String policyId, String participantContextId) {
-
-        var contractDefinition = ContractDefinition.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .participantContextId(participantContextId)
-                .contractPolicyId(policyId)
-                .accessPolicyId(policyId)
-                .assetsSelector(List.of(new Criterion("https://w3id.org/edc/v0.0.1/ns/id", "=", assetId)))
-                .build();
-        return contractDefinitionService.create(contractDefinition);
-    }
-
-    private ServiceResult<Asset> createAssets(String assetId, String participantContextId) {
-        var asset1 = Asset.Builder.newInstance()
-                .id(assetId)
-                .participantContextId(participantContextId)
-                .property("description", "This asset requires the Membership credential to access")
-                .dataAddress(DataAddress.Builder.newInstance()
-                        .type("HttpData")
-                        .property("https://w3id.org/edc/v0.0.1/ns/baseUrl", "https://jsonplaceholder.typicode.com/todos")
-                        .property("https://w3id.org/edc/v0.0.1/ns/proxyPath", "true")
-                        .property("https://w3id.org/edc/v0.0.1/ns/proxyQueryParams", "true")
-                        .build())
-                .build();
-        return assetService.create(asset1);
     }
 }

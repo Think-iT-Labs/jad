@@ -70,10 +70,10 @@ following the following steps:
 
   ```shell
   kind load docker-image \
-      ghcr.io/metaform/jad/controlplane:0.16.0-SNAPSHOT \
-      ghcr.io/metaform/jad/identity-hub:0.16.0-SNAPSHOT \
-      ghcr.io/metaform/jad/issuerservice:0.16.0-SNAPSHOT \
-      ghcr.io/metaform/jad/dataplane:0.16.0-SNAPSHOT \
+      ghcr.io/metaform/jad/controlplane:latest \
+      ghcr.io/metaform/jad/identity-hub:latest \
+      ghcr.io/metaform/jad/issuerservice:latest \
+      ghcr.io/metaform/jad/dataplane:latest \
       ghcr.io/metaform/jad/postgres:wal2json -n edcv
   ```
   or if you're a bash god:
@@ -154,6 +154,26 @@ Next, we need to create a consumer and a provider participant. For this, we can 
 This sets up accounts in the IssuerService, the IdentityHub and the ControlPlane, plus it issues the
 `MembershipCredential` to each new participant. It also seeds dummy data to each participant, specifically an Asset, a
 Policy and a ContractDefinition.
+
+## Seeding EDC-V CEL Expressions
+
+For evaluating policies EDC-V makes usage of the CEL (Common Expression Language) engine. To demonstrate this, we
+will create a simple CEL expression that allows data access only to participants that possess a valid Membership
+Credential.
+
+Run the requests in the `Create CEL expression` request in folder `EDC-V Management` in the same Bruno collection
+to create the CEL expression in the ControlPlane.
+
+![img.png](docs/images/bruno_cel_expr.png)
+
+## Seeding the Provider
+
+Before we can transfer data, we need to seed the Provider with an asset, a policy and a contract definition. This is
+done by running the requests in the `EDC-V Management (Provider)` folder in the same Bruno collection. Again, make sure
+to select the
+`"KinD Local"` environment.
+
+![img.png](docs/images/bruno_provider_seed.png)
 
 ## Transfer Data
 
