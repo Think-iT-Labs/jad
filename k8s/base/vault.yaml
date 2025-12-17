@@ -96,7 +96,7 @@ spec:
               done
               echo "Keycloak is ready!"
               
-  
+              
               # Enable JWT auth method
               vault auth enable jwt || true
 
@@ -141,9 +141,34 @@ spec:
                 "clock_skew_leeway": 60
               }
               EOF
-
+              
+              
+              # Allow full CRUD + list for provisioner
+              cat <<EOF | vault policy write provisioner-policy - || { echo "Failed to write policy"; exit 1; }
+              path "*" {
+                capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+              }
+              
+              path "sys/*" {
+                capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+              }
+              EOF
+              
+              vault write auth/jwt/role/provisioner -<<EOF || { echo "Failed to create provisioner JWT role"; exit 1; }
+              {
+                "role_type": "jwt",
+                "user_claim": "azp",
+                "bound_issuer": "http://vault.localhost/realms/edcv",
+                "bound_claims": {
+                  "role": "provisioner"
+                },
+                "token_policies": ["provisioner-policy"],
+                "clock_skew_leeway": 60
+              }
+              EOF
               echo "Vault bootstrap completed successfully!"
       restartPolicy: OnFailure
+
 
 ---
 apiVersion: v1
