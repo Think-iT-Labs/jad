@@ -114,10 +114,24 @@ kubectl wait --namespace edc-v \
 
 kubectl apply -k k8s/apps/
 
-# Wait for applications to be ready:
+# Wait for seed jobs to be ready:
+kubectl wait --namespace edc-v \
+            --for=condition=complete job --all \
+            --timeout=90s
+```
+
+Here's a copy-and-pasteable command to delete and redeploy everything:
+
+```shell
+kubectl delete -k k8s/ && \
+kubectl apply -f k8s/base && \
 kubectl wait --namespace edc-v \
             --for=condition=ready pod \
-            --selector=type=edcv-app \
+            --selector=type=edcv-infra \
+            --timeout=90s && \
+kubectl apply -f k8s/apps && \
+kubectl wait --namespace edc-v \
+            --for=condition=complete job --all \
             --timeout=90s
 ```
 
@@ -162,7 +176,8 @@ Those are needed to populate the databases and the vault with initial data.
 ### 4. Prepare the data space
 
 In addition to the initial seed data, a few bits and pieces are required for it to become fully operational. These can
-be put in place by running the REST requests in the `CFM - Provision Consumer` folder and in the `CFM - Provision Provider`
+be put in place by running the REST requests in the `CFM - Provision Consumer` folder and in the
+`CFM - Provision Provider`
 in the [Bruno collection](./requests/EDC-V%20Onboarding). Be sure to select the `"KinD Local"` environment in
 Bruno.
 
@@ -180,9 +195,9 @@ of the heavy lifting by doing the following:
 - registers the new `ParticipantContext` with the IssuerService
 - requests VerifiableCredentials from the IssuerService
 
-One word of caution: the `Query Orchestration by Profile ID` will only yield a result after the onboarding is complete.
-If it returns an empty response (i.e., the onboarding is still ongoing), simply wait a bit and try again. Do run all
-requests - each one is needed!
+N.B.: the `Get Participant Profile` may need to be run repeatedly until all entries in the `vpas` array have a
+`"state": "active"` field. This is because the deployment is an asynchronous process and all agents need to run before
+the profile is activated.
 
 ## Seeding EDC-V CEL Expressions
 
