@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: tenant-manager
-          image: ghcr.io/metaform/connector-fabric-manager/tmanager:0.0.1
+          image: ghcr.io/metaform/connector-fabric-manager/tmanager:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

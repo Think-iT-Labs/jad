@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: provision-manager
-          image: ghcr.io/metaform/connector-fabric-manager/pmanager:0.0.1
+          image: ghcr.io/metaform/connector-fabric-manager/pmanager:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

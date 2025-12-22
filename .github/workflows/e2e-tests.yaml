@@ -59,10 +59,10 @@ jobs:
       - name: "Load runtime images into KinD"
         run: |
           kind load docker-image -n jad ghcr.io/metaform/jad/postgres:wal2json \
-                                ghcr.io/metaform/jad/controlplane:0.0.1 \
-                                ghcr.io/metaform/jad/dataplane:0.0.1 \
-                                ghcr.io/metaform/jad/identity-hub:0.0.1 \
-                                ghcr.io/metaform/jad/issuerservice:0.0.1 \
+                                ghcr.io/metaform/jad/controlplane:latest \
+                                ghcr.io/metaform/jad/dataplane:latest \
+                                ghcr.io/metaform/jad/identity-hub:latest \
+                                ghcr.io/metaform/jad/issuerservice:latest \
 
 
       - name: "Install nginx ingress controller"
