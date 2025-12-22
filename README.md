@@ -45,15 +45,29 @@ kind create cluster -n edcv --config kind.config.yaml --kubeconfig ~/.kube/edcv-
 ln -sf ~/.kube/edcv-kind.conf ~/.kube/config # to use KinD's kubeconfig
 ```
 
-#### 1.1 Option 1: Use pre-built images
+Next, deploy the NGINX ingress controller:
 
-There are pre-built images for all JAD apps available from [GHCR](https://github.com/Metaform/jad/packages). Those are
-tested and we strongly recommend using them.
+```shell
+kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
+```
 
-#### 1.2 Option 2: Build images from source
+### 2. Deploy applications
+
+#### 2.1 Option 1: Use pre-built images
+
+There are pre-built images for all JAD apps available from [GHCR](https://github.com/Metaform/jad/packages) and the
+Connector Fabric Manager images are available from
+the [CFM GitHub Repository](https://github.com/Metaform/connector-fabric-manager/packages). Those are tested and we
+strongly recommend using them.
+
+#### 2.2 Option 2: Build images from source
 
 However, for the adventurous among us who want to build them from source, for example, because they've modified the code
-and now want to see it in action, please follow the following steps:
+and now want to see it in action, please follow the following steps to build and load JAD apps:
 
 - build Docker images:
 
@@ -62,14 +76,15 @@ and now want to see it in action, please follow the following steps:
   ```
 
   This will build the Docker images for all components and store them in the local Docker registry. JAD requires a
-  special version of PostgreSQL,n particular, it installs the `wal2json` extension. You can create this special Postgres
+  special version of PostgreSQL, in particular, it installs the `wal2json` extension. You can create this special
+  Postgres
   version by running
 
   ```shell
   docker buildx build -f launchers/postgres/Dockerfile --platform linux/amd64,linux/arm64 -t ghcr.io/metaform/jad/postgres:wal2json launchers/postgres
   ```
 
-  this will create the image `postgres:wal2json` for both amd64 and arm64 (e.g., Apple Silicon) architectures Add
+  this will create the image `postgres:wal2json` for both amd64 and arm64 (e.g., Apple Silicon) architectures. Add
   platforms as needed.
 
 - load images into KinD: KinD has no access to the host's docker context, so we need to load the images into KinD. Note
@@ -88,13 +103,39 @@ and now want to see it in action, please follow the following steps:
   or if you're a bash God:
 
   ```shell
-  kind load docker-image -n edcv $(docker images --format "{{.Repository}}:{{.Tag}}" | grep '^ghcr.io/metaform/jad/')
+  kind load docker-image -n edcv $(docker images --format "{{.Repository}}:{{.Tag}}" | grep '^ghcr.io/metaform/jad.*:latest')
   ```
 
-- modify the deployment manifests `controlplane.yaml`, `dataplane.yaml`, `identityhub.yaml`, `issuerservice.yaml` and
-  `postgres.yaml` and set `imagePullPolicy: Never` to force KinD to use the local images.
+- build CFM docker images locally:
+  ```shell
+  cd /path/to/cfm/
+  make load-into-kind
+  ```
+  This builds all CFM components' docker images and loads them into your KinD cluster, assuming that your KinD cluster
+  is named `"edcv"`. If not, set the cluster name for the make file accordingly:
+  ```
+  cd /path/to/cfm/
+  make load-into-kind KIND_CLUSTER_NAME=your_cluster_name`. 
+  ```
+  Note that individual `make` targets for all CFM components exist, for example `make load-into-kind-pmanager`.
 
-### 2. Deploy the services
+- modify the deployment manifests of the components you want to load locally by setting the `imagePullPolicy: Never`
+  which forces KinD to rely on local images rather than pulling them. This can be done with search-and-replace from your
+  favorite editor, or you can do it from the command line by running
+  ```shell
+  sed -i "s/imagePullPolicy:.*Always/imagePullPolicy: Never/g" <FILENAME>
+  ```
+  **CAUTION Mac users**: this requires GNU-sed. By default, macOS, has a special version of `sed` so you will have
+  to [install GNU sed first](https://medium.com/@bramblexu/install-gnu-sed-on-mac-os-and-set-it-as-default-7c17ef1b8f64)
+- For the EDC-V components, the relevant files are `controlplane.yaml`, `dataplane.yaml`, `identityhub.yaml` and
+  `issuerservice.yaml`
+- as a simplification, and to modify the image pull policy of both EDC-V _and_ CFM components, run:
+  ```shell
+  grep -rlZ "imagePullPolicy: Always" k8s/apps  | xargs sed -i "s/imagePullPolicy:.*Always/imagePullPolicy: Never/g"
+  ```
+  For this, both the EDC-V and CFM docker images must be built locally!!
+
+### 3. Deploy the services
 
 JAD uses plain Kubernetes manifests to deploy the services. All the manifests are located in the [k8s](./k8s) folder.
 While it is possible to just use the Kustomize plugin and running `kubectl apply -k k8s/`, you may experience nasty race
@@ -123,7 +164,7 @@ kubectl wait --namespace edc-v \
 Here's a copy-and-pasteable command to delete and redeploy everything:
 
 ```shell
-kubectl delete -k k8s/ && \
+kubectl delete -k k8s/; \
 kubectl apply -f k8s/base && \
 kubectl wait --namespace edc-v \
             --for=condition=ready pod \
@@ -135,13 +176,16 @@ kubectl wait --namespace edc-v \
             --timeout=90s
 ```
 
+_Note: the `";"` after `kubectl delete -k k8s/` is on purpose for robustness, to allow the command to fail if no
+resources are deployed yet._
+
 This deploys all the services in the correct order. The services are deployed in the `edc-v` namespace. Please verify
 that everything got deployed correctly by running `kubectl get deployments -n edcv`. This should output something like:
 
 ```text
 NAME            READY   UP-TO-DATE   AVAILABLE             AGE
 cfm-agents                1/1     1            1           117m
-cfm-participant-manager   1/1     1            1           117m
+cfm-provision-manager     1/1     1            1           117m
 cfm-tenant-manager        1/1     1            1           117m
 controlplane              1/1     1            1           117m
 dataplane                 1/1     1            1           117m
@@ -153,7 +197,7 @@ postgres                  1/1     1            1           110m
 vault                     1/1     1            1           110m
 ```
 
-### 3. Inspect your deployment
+### 4. Inspect your deployment
 
 - database: the PostgreSQL database is accessible from outside the cluster via
   `jdbc:postgresql://postgres.localhost/controlplane`, username `cp`, password `cp`.
@@ -167,13 +211,13 @@ In addition, you should see the following Kubernetes jobs (`k get jobs -n edcv`)
 ```text
 NAME                       STATUS     COMPLETIONS   DURATION   AGE
 issuerservice-seed         Complete   1/1           13s        119m
-participant-manager-seed   Complete   1/1           15s        119m
+provision-manager-seed   Complete   1/1           15s        119m
 vault-bootstrap            Complete   1/1           19s        120m
 ```
 
 Those are needed to populate the databases and the vault with initial data.
 
-### 4. Prepare the data space
+### 5. Prepare the data space
 
 In addition to the initial seed data, a few bits and pieces are required for it to become fully operational. These can
 be put in place by running the REST requests in the `CFM - Provision Consumer` folder and in the
@@ -273,6 +317,15 @@ To remove the deployment, run:
 ```shell
 kubectl delete -k k8s/
 ```
+
+## Troubleshooting
+
+In case any errors occur referring to authentication or authorization, it is recommended to delete and re-deploy the
+entire base and all apps.
+
+For example, if a participant onboarding went only through half-way, we recommend to do a clean-slate redeployment.
+
+In some cases, even deleting and re-creating the KinD cluster may be required.
 
 ## Deploying JAD on a bare-metal/cloud-hosted Kubernetes
 
