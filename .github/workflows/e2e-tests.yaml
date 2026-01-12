@@ -63,7 +63,7 @@ jobs:
                                 ghcr.io/metaform/jad/controlplane:latest \
                                 ghcr.io/metaform/jad/dataplane:latest \
                                 ghcr.io/metaform/jad/identity-hub:latest \
-                                ghcr.io/metaform/jad/issuerservice:latest \
+                                ghcr.io/metaform/jad/issuerservice:latest 
 
 
       - name: "Install Traefik Gateway controller"
