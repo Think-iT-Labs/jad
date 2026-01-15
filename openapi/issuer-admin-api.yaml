@@ -414,6 +414,15 @@ paths:
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
 components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: http://keycloak.localhost/realms/edcv/protocol/openid-connect/token
+          scopes:
+            issuer-admin-api:read: Read access to identity-api endpoints.
+            issuer-admin-api:write: Write access to identity-api endpoints.
   schemas:
     ApiErrorDetail:
       type: object
