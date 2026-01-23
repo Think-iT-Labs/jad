@@ -15,6 +15,7 @@
 package org.eclipse.edc.virtualized.api.data;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -139,8 +140,26 @@ public class DataApiController {
                         response.resume(Response.status(500).entity(mapped.getMessage()).build());
                     }
                 });
+    }
 
-
+    @GET
+    @Path("/edr/{transferProcessId}")
+    public void getEdr(@PathParam("participantContextId") String participantContextId, @PathParam("transferProcessId") String transferProcessId, @Suspended AsyncResponse response) {
+        var participantContext = participantContextService.getParticipantContext(participantContextId);
+        if (participantContext.failed()) {
+            response.resume(Response.status(404).entity("Participant context '%s' not found".formatted(participantContextId)).build());
+        }
+        dataRequestService.getEdr(transferProcessId)
+                .whenComplete((result, throwable) -> {
+                    try {
+                        if (throwable != null) {
+                            response.resume(throwable);
+                        }
+                        response.resume(result);
+                    } catch (Throwable mapped) {
+                        response.resume(mapped);
+                    }
+                });
     }
 
     private <T> T toResponse(StatusResult<T> result, Throwable throwable) throws Throwable {

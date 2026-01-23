@@ -84,6 +84,14 @@ public class DataRequestService {
                 .thenApply(ServiceResult::success);
     }
 
+    public CompletableFuture<DataAddress> getEdr(String transferProcessId) {
+        var edr = edrStore.resolveByTransferProcess(transferProcessId);
+        if (edr.failed()) {
+            return CompletableFuture.failedFuture(new EdcException("Could not resolve EDR for transfer process: %s".formatted(edr.getFailureDetail())));
+        }
+        return CompletableFuture.completedFuture(edr.getContent());
+    }
+
     private CompletableFuture<String> initiateContractNegotiation(ParticipantContext participantContext, DataRequest dataRequest) {
         var addressForDid = getAddressForDid(dataRequest.providerId());
         if (addressForDid.failed()) {
@@ -180,13 +188,6 @@ public class DataRequestService {
         }
     }
 
-    private CompletableFuture<DataAddress> getEdr(String transferProcessId) {
-        var edr = edrStore.resolveByTransferProcess(transferProcessId);
-        if (edr.failed()) {
-            return CompletableFuture.failedFuture(new EdcException("Could not resolve EDR for transfer process: %s".formatted(edr.getFailureDetail())));
-        }
-        return CompletableFuture.completedFuture(edr.getContent());
-    }
 
     private CompletableFuture<String> downloadData(DataAddress edr) {
 
