@@ -32,4 +32,9 @@ resources:
   - apps/tenant-manager.yaml
   - apps/tenant-manager-config.yaml
   - apps/cfm-agents.yaml
+  - apps/redline.yaml
+  - apps/redline-config.yaml
+  - apps/redline-seed-job.yaml
+  - apps/ui.yaml
+  - apps/ui-config.yaml
 
