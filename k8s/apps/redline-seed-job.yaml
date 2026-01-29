@@ -45,7 +45,7 @@ spec:
               echo "Redline is ready!"
       containers:
         - name: seed-redline
-          image: curlimages/curl:latest
+          image: badouralix/curl-jq # we need jq
           env:
             - name: REDLINE_BASE_URL
               value: "http://redline.edc-v.svc.cluster.local:8081/api/ui"
@@ -61,17 +61,72 @@ spec:
 
               # Create Service Provider
               echo "Creating Service Provider..."
-              SP_RESPONSE=$(curl -s -X POST "$REDLINE_BASE_URL/service-providers" \
+              SP_RESPONSE=$(curl -sf -X POST "$REDLINE_BASE_URL/service-providers" \
                 -H "Content-Type: application/json" \
                 -d '{
                   "name": "JAD Service Provider"
                 }')
 
-              SP_ID=$(echo "$SP_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-              echo "Service Provider created with ID: $SP_ID"
-
-              echo "Service Provider deployed successfully"
+              SP_ID=$(echo "$SP_RESPONSE" | jq -r '.id')
+              echo "Service Provider with ID $SP_ID created successfully"
+              
+              # Create Dataspace
+              echo "Creating Dataspace..."
+              DATASPACE_RESPONSE=$(curl -sf -X POST "$REDLINE_BASE_URL/dataspaces" \
+                -H "content-type: application/json" \
+                -d '{
+                  "name": "Catena-X",
+                  "properties": {
+                    "description": "A Demo Dataspace for JAD"
+                  }
+                }')
+              DATASPACE_ID=$(echo "$DATASPACE_RESPONSE" | jq -r '.id')
+              echo "Dataspace $DATASPACE_ID created successfully"
+              
+              # Create Tenant
+              echo "Creating Tenant..."
+              TENANT_RESPONSE=$(curl -sf -X POST "$REDLINE_BASE_URL/service-providers/$SP_ID/tenants" \
+                -H "content-type: application/json" \
+                -d '{
+                  "tenantName": "Demo Tenant Name",
+                  "dataspaceInfos": [
+                    {
+                      "dataspaceId": '$DATASPACE_ID',
+                      "agreementTypes": [],
+                      "roles": []
+                    }
+                  ]
+                }')
+              
+              TENANT_ID=$(echo "$TENANT_RESPONSE" | jq -r '.id')
+              echo "Tenant created with ID $TENANT_ID"
+              PARTICIPANT_ID=$(echo "$TENANT_RESPONSE" | jq -r '.participants[0].id')
+              
+              # Register Participant
+              echo "Deploy Participant $PARTICIPANT_ID..."
+              curl -sf -X POST "$REDLINE_BASE_URL/service-providers/$SP_ID/tenants/$TENANT_ID/participants/$PARTICIPANT_ID/deployments" \
+                -H "content-type: application/json" \
+                -d '{
+                  "participantId": '$PARTICIPANT_ID',
+                  "identifier": "did:web:identityhub.edc-v.svc.cluster.local%3A7083:demo-participant"
+                }'
+              
+              echo "Participant deployed. Waiting for participant to become ACTIVE."
+              
+              
+              # Wait for Participant to become ACTIVE
+              while true; do
+                result=$(curl -s -X GET "$REDLINE_BASE_URL/service-providers/$SP_ID/tenants/$TENANT_ID/participants/$PARTICIPANT_ID" | jq '[.agents[].state] | all(. == "ACTIVE")')
+                
+                if [ "$result" = "true" ]; then
+                     echo "All agents are ACTIVE"
+                     break
+                fi
+                     
+                echo "Waiting for all agents to become ACTIVE..."
+                sleep 10
+              done
+              
               echo "================================================"
               echo "Redline Seeding Complete"
               echo "================================================"
-
