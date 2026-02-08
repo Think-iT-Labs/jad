@@ -8,6 +8,9 @@ infrastructure.
 
 For that, JAD uses the "Virtual Connector" project: <https://github.com/eclipse-edc/Virtual-Connector>
 
+> For the conceptual guide that JAD brings to life, see
+> [Operating Multi-Tenant Dataspace Environments](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide).
+
 ## Components
 
 Such a dataspace requires – at a minimum – the following components:
@@ -22,6 +25,73 @@ Such a dataspace requires – at a minimum – the following components:
 - a messaging system: used to process asynchronous messages. We are using NATS for this.
 - a connector fabric manager (CFM): comprised of the `tenant-manager` and the `provision-manager` as well as several
   agents to manage dataspace participant resources
+
+## How JAD works: roles, architecture, and the onboarding journey
+
+This section provides the conceptual context for the hands-on walkthrough that follows. If you are already familiar
+with the [companion guide](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide), you can
+skip ahead to [Getting started](#getting-started).
+
+### The use case
+
+A Cloud Service Provider operates a multi-tenant dataspace platform. Two organizations — "Demo Consumer Company" and
+"Demo Provider Company" — want to join a shared dataspace to exchange data. The JAD demonstrates the full lifecycle:
+deploying the platform, onboarding both organizations as participants, and executing a data transfer where the Consumer
+proves it holds a valid Membership Credential before receiving the Provider's data.
+
+### Roles
+
+Throughout this walkthrough you step into different roles. In a production environment these would be held by
+different teams or even different organizations.
+
+| Role | Responsibility | Not responsible for |
+|------|----------------|---------------------|
+| **Operator** | Deploys and manages Kubernetes, databases, secrets, networking, and monitoring. Owns the platform infrastructure. | Business data, trust decisions, or participant-level configuration. |
+| **Provisioner** | Onboards new participants through the Connector Fabric Manager (CFM). Creates tenant contexts, credentials, and identity. | Trust decisions between participants. The CFM is **not** in the trust-decision path. |
+| **Participant** | Manages its own catalogs, policies, contracts, and data flows. Operates independently through its Virtual Participant Agent (VPA). | Platform infrastructure or other participants' contexts. |
+| **Admin** | Full access for initial setup and crisis recovery. | Day-to-day operations — explicitly not intended for regular use. |
+
+> **Key principle**: Operationally, onboarding and lifecycle management are centralized (Operator + Provisioner), while
+> trust and sharing decisions remain fully decentralized between Participants.
+
+### Architecture: three layers
+
+The components listed above are organized in three layers. Understanding this separation is essential because it
+explains why the platform can keep running data transfers even when the management plane is down.
+
+| Layer | Components | Purpose |
+|-------|------------|---------|
+| **Infrastructure** | PostgreSQL, Vault, Keycloak, NATS | Reliability primitives — storage, secrets, identity, messaging |
+| **Management Plane** | CFM (tenant-manager, provision-manager, agents) | Automation — provisions participant contexts but is **not** in the trust-decision path |
+| **Runtime Plane** | Control Plane, IdentityHub, IssuerService, Data Plane | Trust and sharing — protocol endpoints, policy evaluation, credential exchange, data execution |
+
+The Management Plane (CFM) can be completely unavailable without stopping active data sharing. Once participants are
+onboarded, trust decisions flow peer-to-peer through the Runtime Plane.
+
+### The onboarding journey
+
+The [companion guide](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide) defines a
+six-stage onboarding journey. The table below maps each stage to what happens concretely in JAD:
+
+| Stage | What happens | How JAD does it | Who |
+|-------|-------------|-----------------|-----|
+| 1. Application | Organization applies to join the dataspace | _Out of scope — governance/legal process_ | — |
+| 2. Verification | Legal, compliance, and business checks | _Out of scope — governance/legal process_ | — |
+| 3. Tenant provisioning | Platform creates technical context | CFM creates `ParticipantContext` in Control Plane and IdentityHub, provisions Vault and API credentials | Provisioner |
+| 4. Credential issuance | Issuer delivers Verifiable Credentials | CFM registers the participant with IssuerService and requests VCs automatically | Provisioner |
+| 5. Configuration | Participant sets up assets, policies, applications | Provider seeds assets/policies; Consumer seeds CEL expressions | Participant |
+| 6. Active participation | Catalog discovery, contract negotiation, data flows | Data transfer via the one-stop-shop API | Participant |
+
+### What the seed jobs do
+
+When the platform deploys, several Kubernetes jobs run automatically to bootstrap initial data. Understanding their
+purpose helps when troubleshooting or extending JAD:
+
+| Seed job | Purpose | Stage |
+|----------|---------|-------|
+| `vault-bootstrap` | Creates secret engines and initial credentials in Vault | Platform setup (Operator) |
+| `provision-manager-seed` | Seeds the CFM with platform-level configuration | Platform setup (Operator) |
+| `issuerservice-seed` | Configures the IssuerService to issue Verifiable Credentials | Platform setup (Operator) |
 
 ## Required tools and apps
 
