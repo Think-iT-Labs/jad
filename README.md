@@ -8,6 +8,23 @@ infrastructure.
 
 For that, JAD uses the "Virtual Connector" project: <https://github.com/eclipse-edc/Virtual-Connector>
 
+> For an in-depth guide on the concepts, architecture, and operational model behind JAD, see
+> [Operating Multi-Tenant Dataspace Environments](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide).
+
+## Roles
+
+Throughout this walkthrough you will step into different roles. Understanding who does what is key to understanding how
+a dataspace-as-a-service platform operates.
+
+| Role | Responsibility | JAD sections |
+|------|----------------|--------------|
+| **Operator** | Deploys and manages the Kubernetes infrastructure, databases, secrets, networking, and monitoring. Owns the platform but does not touch business data. | [1. Create a KinD cluster](#1-create-a-kind-cluster) through [4. Inspect your deployment](#4-inspect-your-deployment) |
+| **Provisioner** | Onboards new participants through the Connector Fabric Manager (CFM). Creates tenant contexts, credentials, and identity — but is _not_ in the trust-decision path. | [5. Prepare the data space](#5-prepare-the-data-space) |
+| **Participant** | An organization that uses the platform. Manages its own catalogs, policies, contracts, and data flows. Each participant operates independently through its Virtual Participant Agent (VPA). | [Seeding EDC-V CEL Expressions](#seeding-edc-v-cel-expressions) through [Transfer Data](#transfer-data) |
+
+> **Key principle**: Operationally, onboarding and lifecycle management are centralized (Operator + Provisioner), while
+> trust and sharing decisions remain fully decentralized between Participants.
+
 ## Components
 
 Such a dataspace requires – at a minimum – the following components:
@@ -22,6 +39,14 @@ Such a dataspace requires – at a minimum – the following components:
 - a messaging system: used to process asynchronous messages. We are using NATS for this.
 - a connector fabric manager (CFM): comprised of the `tenant-manager` and the `provision-manager` as well as several
   agents to manage dataspace participant resources
+
+These components are organized in three layers:
+
+| Layer | Components | Purpose |
+|-------|------------|---------|
+| **Infrastructure** | PostgreSQL, Vault, Keycloak, NATS | Reliability primitives — storage, secrets, identity, messaging |
+| **Management Plane** | CFM (tenant-manager, provision-manager, agents) | Automation — provisions participant contexts but is **not** in the trust-decision path |
+| **Runtime Plane** | Control Plane, IdentityHub, IssuerService, Data Plane | Trust and sharing — protocol endpoints, policy evaluation, data execution |
 
 ## Required tools and apps
 
@@ -41,6 +66,8 @@ _All shell commands are executed from the root of the project unless stated othe
 ## Getting started
 
 ### 1. Create a KinD cluster
+
+> **Role: Operator** — You are setting up the cloud-native infrastructure that will host the entire dataspace platform.
 
 To create a KinD cluster, run:
 
@@ -129,6 +156,8 @@ traefik   LoadBalancer   10.96.251.221   172.18.0.3    80:31415/TCP,443:31650/TC
 
 ### 2. Deploy applications
 
+> **Role: Operator** — You are deploying the application images that make up the dataspace platform.
+
 #### 2.1 Option 1: Use pre-built images
 
 There are pre-built images for all JAD apps available from [GHCR](https://github.com/Metaform/jad/packages) and the
@@ -207,6 +236,9 @@ and now want to see it in action, please follow the following steps to build and
 
 ### 3. Deploy the services
 
+> **Role: Operator** — You are bringing the platform online. Infrastructure services start first, then the application
+> layer. Seed jobs run automatically to bootstrap initial data.
+
 JAD uses plain Kubernetes manifests to deploy the services. All the manifests are located in the [k8s](./k8s) folder.
 While it is possible to just use the Kustomize plugin and running `kubectl apply -k k8s/`, you may experience nasty race
 conditions because some services depend on others to be fully operational before they can start properly.
@@ -269,6 +301,8 @@ vault                     1/1     1            1           110m
 
 ### 4. Inspect your deployment
 
+> **Role: Operator** — Verify the platform is healthy before handing off to the Provisioner.
+
 - database: the PostgreSQL database is accessible from outside the cluster via
   `jdbc:postgresql://postgres.localhost/controlplane`, username `cp`, password `cp`.
 - vault: the vault is accessible from outside the cluster via `http://vault.localhost`, using token `root`.
@@ -288,6 +322,10 @@ vault-bootstrap            Complete   1/1           19s        120m
 Those are needed to populate the databases and the vault with initial data.
 
 ### 5. Prepare the data space
+
+> **Role: Provisioner** — You are now onboarding participants into the dataspace. The CFM automates the provisioning
+> of each participant's runtime context, credentials, and identity. Importantly, the CFM is **not** in the
+> trust-decision path — it sets up the infrastructure for trust, but never participates in trust exchanges itself.
 
 In addition to the initial seed data, a few bits and pieces are required for it to become fully operational. These can
 be put in place by running the REST requests in the `CFM - Provision Consumer` folder and in the
@@ -309,11 +347,19 @@ of the heavy lifting by doing the following:
 - registers the new `ParticipantContext` with the IssuerService
 - requests VerifiableCredentials from the IssuerService
 
+Each of these steps maps to a stage in the
+[participant onboarding journey](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide):
+the platform provisions the technical context (tenant provisioning), then delivers Verifiable Credentials
+(credential issuance), making the participant ready to configure its own assets and policies.
+
 N.B.: the `Get Participant Profile` may need to be run repeatedly until all entries in the `vpas` array have a
 `"state": "active"` field. This is because the deployment is an asynchronous process and all agents need to run before
 the profile is activated.
 
 ## Seeding EDC-V CEL Expressions
+
+> **Role: Participant (Consumer)** — You are configuring your participant's policy evaluation engine. This is a
+> trust-level decision that only participants make — the Operator and Provisioner cannot do this on your behalf.
 
 For evaluating policies EDC-V makes usage of the CEL (Common Expression Language) engine. To demonstrate this, we
 will create a simple CEL expression that allows data access only to participants that possess a valid Membership
@@ -326,6 +372,9 @@ same Bruno collection to create the CEL expression in the ControlPlane.
 
 ## Seeding the Provider
 
+> **Role: Participant (Provider)** — You are publishing your data offerings and defining access policies. This
+> establishes what other participants can discover in your catalog and under what conditions they may access your data.
+
 Before we can transfer data, we need to seed the Provider with an asset, a policy and a contract definition. This is
 done by running the requests in the `EDC-V Management/Provider` folder in the same Bruno collection. Again, make sure
 to select the
@@ -336,6 +385,10 @@ to select the
 **If all requests ran successfully, you should now have access credentials for both the consumer and the provider!**
 
 ## Transfer Data
+
+> **Role: Participant (Consumer + Provider)** — The two participants now interact peer-to-peer. The Consumer discovers
+> the Provider's catalog, negotiates a contract by proving possession of a valid Membership Credential, and receives
+> the data. Neither the Operator nor the Provisioner is involved in this exchange.
 
 Now that both participants are set up, we can transfer data from the Provider to the Consumer.
 There are two use case supported here:
