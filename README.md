@@ -8,20 +8,57 @@ infrastructure.
 
 For that, JAD uses the "Virtual Connector" project: <https://github.com/eclipse-edc/Virtual-Connector>
 
-## Components
+> For the conceptual guide that JAD brings to life, see
+> [Operating Multi-Tenant Dataspace Environments](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide).
 
-Such a dataspace requires – at a minimum – the following components:
+## The scenario
 
-- a control plane: handles protocol messages and catalog data for each participant
-- IdentityHub: responsible for managing Verifiable Credentials (presentation and storage)
-- IssuerService: issues Verifiable Credentials to participants' IdentityHubs
-- a data plane: performs the actual data transfer
-- an identity provider: handles API authentication of management APIs. We are using Keycloak here.
-- a vault: used to securely store sensitive data, such as the private keys etc. We are using Hashicorp Vault.
-- a database server: contains persistent data of all the components. We are using PostgreSQL.
-- a messaging system: used to process asynchronous messages. We are using NATS for this.
-- a connector fabric manager (CFM): comprised of the `tenant-manager` and the `provision-manager` as well as several
-  agents to manage dataspace participant resources
+A **Cloud Service Provider** ("JAD Service Provider") operates a multi-tenant dataspace platform. Two companies want to
+join a shared dataspace to exchange data:
+
+- **Demo Consumer Company** — needs to discover and consume data from partners
+- **Demo Provider Company** — publishes data offerings that other participants can access under policy-controlled terms
+
+JAD walks through the full lifecycle: from deploying the platform infrastructure, through onboarding both
+organizations, to executing a data transfer where the Consumer proves it holds a valid Membership Credential before
+receiving the Provider's data.
+
+Along the way, you will step into three distinct roles:
+
+| Role | What you do | When |
+|------|-------------|------|
+| **Operator** | Deploy Kubernetes, databases, secrets, networking, and the application layer. Own the platform infrastructure. | [Part 1: Deploy the platform](#part-1-deploy-the-platform-operator) |
+| **Provisioner** | Onboard participants via the Connector Fabric Manager (CFM). Create their runtime contexts, credentials, and identity. | [Part 2: Onboard participants](#part-2-onboard-participants-provisioner) |
+| **Participant** | Manage your own catalogs, policies, contracts, and data flows. Operate independently through your Virtual Participant Agent (VPA). | [Part 3: Operate as a participant](#part-3-operate-as-a-participant) |
+
+> **Key principle**: Operationally, onboarding and lifecycle management are centralized (Operator + Provisioner), while
+> trust and sharing decisions remain fully decentralized between Participants. The CFM provisions contexts but is
+> **not** in the trust-decision path.
+
+## Architecture overview
+
+JAD's components are organized in three layers:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Runtime Plane (EDC-V)                         │
+│  Control Plane · IdentityHub · IssuerService · Data Plane          │
+│  → Trust and sharing: protocol endpoints, policy evaluation,       │
+│    credential exchange, data execution                             │
+├─────────────────────────────────────────────────────────────────────┤
+│                   Management Plane (CFM)                           │
+│  tenant-manager · provision-manager · agents                       │
+│  → Automation: provisions participant contexts but is NOT in       │
+│    the trust-decision path                                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                      Infrastructure                                │
+│  PostgreSQL · Hashicorp Vault · Keycloak · NATS                    │
+│  → Reliability primitives: storage, secrets, identity, messaging   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+The critical design insight: the Management Plane (CFM) can be completely unavailable without stopping active data
+sharing. Once participants are onboarded, trust decisions flow peer-to-peer through the Runtime Plane.
 
 ## Required tools and apps
 
@@ -38,9 +75,14 @@ Such a dataspace requires – at a minimum – the following components:
 
 _All shell commands are executed from the root of the project unless stated otherwise._
 
-## Getting started
+---
 
-### 1. Create a KinD cluster
+## Part 1: Deploy the platform (Operator)
+
+As the **Operator**, you deploy the cloud-native infrastructure and the application layer. This is the foundation that
+will host all participants.
+
+### 1.1 Create a KinD cluster
 
 To create a KinD cluster, run:
 
@@ -127,16 +169,16 @@ traefik   LoadBalancer   10.96.251.221   172.18.0.3    80:31415/TCP,443:31650/TC
 > Note that with the external LB, services inside the cluster must be accessed via the external IP address, e.g.
 > `172.18.0.3` in this case. Variables inside the Bruno collection must be adjusted accordingly!
 
-### 2. Deploy applications
+### 1.2 Deploy applications
 
-#### 2.1 Option 1: Use pre-built images
+#### Option 1: Use pre-built images
 
 There are pre-built images for all JAD apps available from [GHCR](https://github.com/Metaform/jad/packages) and the
 Connector Fabric Manager images are available from
 the [CFM GitHub Repository](https://github.com/Metaform/connector-fabric-manager/packages). Those are tested and we
 strongly recommend using them.
 
-#### 2.2 Option 2: Build images from source
+#### Option 2: Build images from source
 
 However, for the adventurous among us who want to build them from source, for example, because they've modified the code
 and now want to see it in action, please follow the following steps to build and load JAD apps:
@@ -205,7 +247,7 @@ and now want to see it in action, please follow the following steps to build and
 
   For this, both the EDC-V and CFM docker images must be built locally!!
 
-### 3. Deploy the services
+### 1.3 Deploy the services
 
 JAD uses plain Kubernetes manifests to deploy the services. All the manifests are located in the [k8s](./k8s) folder.
 While it is possible to just use the Kustomize plugin and running `kubectl apply -k k8s/`, you may experience nasty race
@@ -267,7 +309,9 @@ postgres                  1/1     1            1           110m
 vault                     1/1     1            1           110m
 ```
 
-### 4. Inspect your deployment
+### 1.4 Verify the platform
+
+Before handing off to the Provisioner, verify that the infrastructure is healthy:
 
 - database: the PostgreSQL database is accessible from outside the cluster via
   `jdbc:postgresql://postgres.localhost/controlplane`, username `cp`, password `cp`.
@@ -285,13 +329,37 @@ provision-manager-seed     Complete   1/1           15s        119m
 vault-bootstrap            Complete   1/1           19s        120m
 ```
 
-Those are needed to populate the databases and the vault with initial data.
+Those seed jobs bootstrap the platform with initial data:
 
-### 5. Prepare the data space
+| Seed job | What it does |
+|----------|-------------|
+| `vault-bootstrap` | Creates secret engines and initial credentials in Vault |
+| `provision-manager-seed` | Seeds the CFM with platform-level configuration |
+| `issuerservice-seed` | Configures the IssuerService to issue Verifiable Credentials |
 
-In addition to the initial seed data, a few bits and pieces are required for it to become fully operational. These can
-be put in place by running the REST requests in the `CFM - Provision Consumer` folder and in the
-`CFM - Provision Provider`
+> At this point, the **platform is running** but no participants exist yet. The Operator's job is done — time to hand
+> off to the Provisioner.
+
+---
+
+## Part 2: Onboard participants (Provisioner)
+
+As the **Provisioner**, you onboard organizations into the dataspace. This follows the
+[participant onboarding journey](https://dataspacebuilder.github.io/website/guides/ops-multi-tenant-ds-env-guide)
+described in the companion guide:
+
+| Stage | What happens | How JAD does it |
+|-------|-------------|-----------------|
+| 1. Application | Organization applies to join the dataspace | _Out of scope — governance/legal process_ |
+| 2. Verification | Legal, compliance, and business checks | _Out of scope — governance/legal process_ |
+| 3. Tenant provisioning | Platform creates technical context | CFM creates `ParticipantContext` in Control Plane and IdentityHub, provisions Vault and API credentials |
+| 4. Credential issuance | Governance-recognized issuer delivers Verifiable Credentials | CFM registers the participant with IssuerService and requests VCs |
+| 5. Configuration | Participant sets up assets, policies, applications | _Handed off to Participant — see [Part 3](#part-3-operate-as-a-participant)_ |
+| 6. Active participation | Catalog discovery, contract negotiation, data flows | _Handed off to Participant — see [Part 3](#part-3-operate-as-a-participant)_ |
+
+### 2.1 Provision the Consumer and Provider
+
+Run the REST requests in the `CFM - Provision Consumer` folder and in the `CFM - Provision Provider` folder
 in the [Bruno collection](./requests/EDC-V%20Onboarding). Be sure to select the `"KinD Local"` environment in
 Bruno.
 
@@ -300,8 +368,7 @@ Bruno.
 Those requests can be run manually, one after the other, or via Bruno's "Run" feature. It may be necessary to manually
 refresh the access token in the `"Auth*"` tab.
 
-This creates a consumer and a provider participant using the Connector Fabric Manager's (CFM) REST API. CFM does a lot
-of the heavy lifting by doing the following:
+Behind the scenes, CFM automates stages 3 and 4 of the onboarding journey:
 
 - creates access credentials for both the Vault and the Administration APIs
 - creates a `ParticipantContext` in the control plane
@@ -313,37 +380,48 @@ N.B.: the `Get Participant Profile` may need to be run repeatedly until all entr
 `"state": "active"` field. This is because the deployment is an asynchronous process and all agents need to run before
 the profile is activated.
 
-## Seeding EDC-V CEL Expressions
+> Both participants are now onboarded. The Provisioner's job is done — from here, each participant configures and
+> operates their own context independently.
 
-For evaluating policies EDC-V makes usage of the CEL (Common Expression Language) engine. To demonstrate this, we
-will create a simple CEL expression that allows data access only to participants that possess a valid Membership
-Credential.
+---
+
+## Part 3: Operate as a participant
+
+As a **Participant**, you manage your own catalogs, policies, and data flows. The Operator and Provisioner have no
+visibility into or control over these trust-level decisions.
+
+### 3.1 Configure the Consumer's policy engine
+
+The Consumer needs a policy evaluation rule to enforce access control. EDC-V uses the CEL (Common Expression Language)
+engine for this. We will create a simple CEL expression that allows data access only to participants that possess a
+valid Membership Credential.
 
 Run the requests in the `Create CEL expression` request in folder `EDC-V Management/Prepare consumer participant` in the
 same Bruno collection to create the CEL expression in the ControlPlane.
 
 ![img.png](docs/images/bruno_cel_expr.png)
 
-## Seeding the Provider
+### 3.2 Publish the Provider's data offerings
 
-Before we can transfer data, we need to seed the Provider with an asset, a policy and a contract definition. This is
-done by running the requests in the `EDC-V Management/Provider` folder in the same Bruno collection. Again, make sure
-to select the
-`"KinD Local"` environment.
+The Provider publishes what it wants to share and under what conditions. This means seeding an asset, a policy, and a
+contract definition.
+
+Run the requests in the `EDC-V Management/Provider` folder in the same Bruno collection. Again, make sure
+to select the `"KinD Local"` environment.
 
 ![img.png](docs/images/bruno_provider_seed.png)
 
 **If all requests ran successfully, you should now have access credentials for both the consumer and the provider!**
 
-## Transfer Data
+### 3.3 Transfer data
 
-Now that both participants are set up, we can transfer data from the Provider to the Consumer.
-There are two use case supported here:
+Now the two participants interact **peer-to-peer** — the Consumer discovers the Provider's catalog, negotiates a
+contract by proving it holds a valid Membership Credential, and receives the data. Neither the Operator nor the
+Provisioner is involved in this exchange.
 
-- Http proxy
-- Certificates sharing via HTTP
+There are two use cases supported here:
 
-### Http proxy
+#### Http proxy
 
 EDC-V offers a one-stop-shop API to transfer data. This is achieved by two endpoints, one that fetches the catalog (
 `Data Transfer/Http Todo/Get Catalog`) and another endpoint (`Data Transfer/Http Todo/Get Data`) that initiates the
@@ -376,7 +454,7 @@ from <https://jsonplaceholder.typicode.com/todos>, something like:
 ]
 ```
 
-### Certificates sharing via HTTP
+#### Certificates sharing via HTTP
 
 The second use case demonstrates how certificates can be shared between participants using EDC-V's HTTP data
 transfer capabilities.
@@ -400,7 +478,11 @@ which:
 - Query the provider for listing the available certificates storing the first certificate id
 - Finally, download the certificate using the certificate id
 
-## Automated tests
+---
+
+## Reference
+
+### Automated tests
 
 JAD comes with a set of automated tests that can be run against the deployed services. These tests are located in the
 [tests/end2end](./tests/end2end) folder. To run them, deploy JAD without creating any resources, and then run the test
@@ -413,7 +495,7 @@ suite:
 This may be particularly useful if you want to tinker with the code base, add or change stuff and would like to see if
 everything still works. Remember to rebuild and reload the docker images, though...
 
-## Cleanup
+### Cleanup
 
 To remove the deployment, run:
 
@@ -421,7 +503,7 @@ To remove the deployment, run:
 kubectl delete -k k8s/
 ```
 
-## Troubleshooting
+### Troubleshooting
 
 In case any errors occur referring to authentication or authorization, it is recommended to delete and re-deploy the
 entire base and all apps.
@@ -430,13 +512,13 @@ For example, if a participant onboarding went only through half-way, we recommen
 
 In some cases, even deleting and re-creating the KinD cluster may be required.
 
-## Deploying JAD on a bare-metal/cloud-hosted Kubernetes
+### Deploying JAD on a bare-metal/cloud-hosted Kubernetes
 
 KinD is geared towards local development and testing. For example, it comes with a bunch of useful defaults, such as
 storage classes, load balancers, network plugins, etc. If you want to deploy JAD on a bare-metal or cloud-hosted
 Kubernetes cluster, then there are some caveats to keep in mind.
 
-### Configure network access and DNS
+#### Configure network access and DNS
 
 EDC-V, Keycloak and Vault will need to be accessible from outside the cluster. For this, your cluster needs a network
 plugin and an external load balancer. For bare-metal installations, consider using [MetalLB](https://metallb.io).
@@ -448,8 +530,8 @@ should point to the IP address of the Kubernetes host, for example:
 
 ![img.png](docs/images/dns.png)
 
-Each [component](#components) of JAD has its own HTTP route (Kubernetes replacement for Ingress routes), so it may be
-advisable to define DNS subdomains for each of them, for example:
+Each [component](#architecture-overview) of JAD has its own HTTP route (Kubernetes replacement for Ingress routes), so
+it may be advisable to define DNS subdomains for each of them, for example:
 
 - Control plane: `https://cp.yourdomain.com/` -> 194.123.456.88
 - Identity Hub: `https://ih.yourdomain.com/` -> 194.123.456.88
@@ -462,7 +544,7 @@ Where `194.178.218.88` is the IP address of the Kubernetes host running MetalLB 
 _In actual production deployments, these individual hostnames, and potentially also individual IP addresses, would be
 necessary to isolate security domains and prevent unauthorized access or privilege escalation._
 
-### Tune Traefik gateway controller
+#### Tune Traefik gateway controller
 
 By default, Traefik binds to port 80 and 443 on the host machine. This is useful to enable clean URLs like
 `http://tm.yourdomain.com/api/v1alpha1/cells` etc. without any ports. However, some Linux distributions don't allow
@@ -482,7 +564,7 @@ securityContext:
   runAsUser: 0
 ```
 
-### Create Bruno Environment
+#### Create Bruno Environment
 
 Some of the URL paths used in Bruno are hard coded to `localhost` in a Bruno environment named `KinD Local`. This is
 tailored to running JAD on a local KinD cluster. To make the collection usable for a remote deployment, we recommend
@@ -492,7 +574,7 @@ Create another environment to suit your setup:
 
 ![img.png](docs/images/bruno_custom_env.png)
 
-### Update deployment manifests
+#### Update deployment manifests
 
 in [keycloak.yaml](k8s/base/keycloak.yaml) and [vault.yaml](k8s/base/vault.yaml), update the `hostnames` fields in the
 `HTTPRoute` resources to match your DNS:
@@ -511,7 +593,7 @@ spec:
 Do this for all `HTTPRoute` declarations in all components' manifests. The `hostnames` field should contain entries
 matching your DNS subdomains that you have also used to create the new Bruno environment.
 
-### Update the Keycloak realm
+#### Update the Keycloak realm
 
 In `k8s/base/keycloak.yaml`, find the line that says:
 
@@ -527,7 +609,7 @@ and replace with
 
 This is crucial for Vault authentication to work properly.
 
-### Tune readiness probes
+#### Tune readiness probes
 
 We've set up the readiness probes fairly tight, to avoid long wait times on local KinD clusters. However, in some
 Kubernetes
@@ -558,7 +640,7 @@ livenessProbe:
   failureThreshold: 15 # changed
 ```
 
-## Using the OpenAPI specifications
+### Using the OpenAPI specifications
 
 We've included [OpenAPI specifications](./openapi) for all JAD components that expose REST APIs. We'll call those APIs
 "Administration APIs" and you can read more about them in
@@ -571,7 +653,7 @@ misconfigure their JAD deployment to the point of failure.
 However, the complete specifications for each component, including modifying and thus potentially dangerous actions, can
 be found in the respective GitHub repositories.
 
-### Intended audience
+#### Intended audience
 
 The curated OpenAPI specifications are intended for developers who have graduated beyond the use of
 the [Bruno collection](./requests/EDC-V%20Onboarding) and want to integrate JAD components into their own applications
@@ -580,7 +662,7 @@ such as ERP systems, web UIs or other applications.
 Another important use case is to generate server stubs for client applications to make testing independent of the JAD
 deployment, and thus easier and more repeatable.
 
-### Swagger UI vs generated clients
+#### Swagger UI vs generated clients
 
 Unfortunately, Keycloak rejects authorization requests from Swagger UI due to CORS restrictions. Therefore, we recommend
 using these OpenAPI files to manually implement or generate client libraries for your programming language of choice.
